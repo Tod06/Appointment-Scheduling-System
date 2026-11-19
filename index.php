@@ -39,8 +39,9 @@ site_header($user);
         </div>
       </div>
 
-      <div class="preview" aria-hidden="true">
-        <div class="preview-card">
+      <div class="preview">
+        <img class="hero-photo" src="<?= e(asset('img/hero-doctor.jpg')) ?>" alt="A smiling doctor in a white coat holding a stethoscope" width="1600" height="1679" fetchpriority="high">
+        <div class="preview-card" aria-hidden="true">
           <div class="preview-top">
             <div class="row">
               <span class="avatar"><?= $sample ? e(initials($sample['name'])) : icon('stethoscope', 15) ?></span>
@@ -70,7 +71,7 @@ site_header($user);
             <span class="btn btn-primary btn-sm">Confirm</span>
           </div>
         </div>
-        <div class="preview-float">
+        <div class="preview-float" aria-hidden="true">
           <span class="ok"><?= icon('check', 16) ?></span>
           <div>
             <div style="font-weight:500;font-size:13px">Your appointment is confirmed</div>
@@ -87,6 +88,8 @@ site_header($user);
         <h2>Three steps from request to consultation.</h2>
         <p>Every request is stored in one central record, so patients and authorized staff work with the same scheduling information.</p>
       </div>
+      <div class="how-wrap">
+      <div class="how-photo"><img src="<?= e(asset('img/consultation.jpg')) ?>" alt="A doctor at her desk consulting a young patient" width="1600" height="1067" loading="lazy"></div>
       <div class="how">
         <div class="how-step">
           <div class="how-num">01</div>
@@ -103,6 +106,7 @@ site_header($user);
           <h3>Track its status</h3>
           <p>Your doctor approves the request and its status is updated. Cancel or request a new time from your dashboard.</p>
         </div>
+      </div>
       </div>
     </div>
   </section>
@@ -171,7 +175,7 @@ site_header($user);
 
 <footer class="site-footer">
   <div class="container">
-    <span><?= e(config('org_name')) ?></span>
+    <span class="row" style="gap:14px"><?= brand_logo(34) ?> <span><?= e(config('org_name')) ?></span></span>
     <span>For emergencies, go straight to the Health Service. Do not wait for an appointment.</span>
   </div>
 </footer>

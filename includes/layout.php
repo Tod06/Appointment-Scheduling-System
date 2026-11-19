@@ -4,7 +4,6 @@ defined('APP') || exit;
 function render_head(string $title, string $bodyClass = ''): void
 {
     $fullTitle = $title === '' ? config('app_name', 'UHS Appointments') : $title . ' | ' . config('app_name', 'UHS Appointments');
-    $favicon = "data:image/svg+xml," . rawurlencode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="9" fill="#0f5c4c"/><path d="M9 11.5h14" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".55"/><path d="M16 14.5v9M11.5 19h9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg>');
     ?>
 <!doctype html>
 <html lang="en">
@@ -15,7 +14,8 @@ function render_head(string $title, string $bodyClass = ''): void
   <meta name="description" content="Book, track and manage appointments at the <?= e(config('org_name')) ?>.">
   <meta name="theme-color" content="#f5f4f0" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0e1012" media="(prefers-color-scheme: dark)">
-  <link rel="icon" href="<?= e($favicon) ?>">
+  <link rel="icon" type="image/png" href="<?= e(asset('img/favicon.png')) ?>">
+  <link rel="apple-touch-icon" href="<?= e(asset('img/ui-crest.png')) ?>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap">
@@ -68,6 +68,7 @@ function render_error_page(int $code, string $title, string $message): void
     ?>
 <main id="main" class="error-page">
   <div>
+    <div style="display:flex;justify-content:center;margin-bottom:20px"><?= brand_mark(56) ?></div>
     <div class="error-code"><?= $code ?></div>
     <h1 style="margin-top:12px;font-size:20px"><?= e($title) ?></h1>
     <p class="muted" style="margin:8px auto 0;max-width:420px"><?= e($message) ?></p>
@@ -132,7 +133,7 @@ function app_start(array $user, string $title, array $opts = []): void
 <div class="app" data-app>
   <aside class="sidebar" id="sidebar" aria-label="Main navigation">
     <a class="sidebar-brand" href="<?= e(url(home_for($user['role']))) ?>">
-      <?= brand_mark(30) ?>
+      <?= brand_mark(34) ?>
       <span>
         <span class="brand-name">UHS Appointments</span><br>
         <span class="brand-sub">University of Ibadan</span>
@@ -213,12 +214,8 @@ function site_header(?array $user): void
     ?>
 <header class="site-header">
   <div class="site-header-inner">
-    <a class="brand" href="<?= e(url('index.php')) ?>">
-      <?= brand_mark(30) ?>
-      <span>
-        <span class="brand-name">UHS Appointments</span><br>
-        <span class="brand-sub">University of Ibadan</span>
-      </span>
+    <a class="brand" href="<?= e(url('index.php')) ?>" aria-label="UHS Appointments, University of Ibadan">
+      <?= brand_logo(40) ?>
     </a>
     <nav class="site-nav" aria-label="Site">
       <a class="link hide-sm" href="#how">How it works</a>
@@ -227,7 +224,7 @@ function site_header(?array $user): void
         <a class="btn btn-primary btn-sm" href="<?= e(url(home_for($user['role']))) ?>">Open dashboard <?= icon('arrow-right', 15) ?></a>
       <?php else: ?>
         <a class="link" href="<?= e(url('login.php')) ?>">Sign in</a>
-        <a class="btn btn-dark btn-sm" href="<?= e(url('register.php')) ?>">Create account</a>
+        <a class="btn btn-primary btn-sm" href="<?= e(url('register.php')) ?>">Create account</a>
       <?php endif; ?>
     </nav>
   </div>

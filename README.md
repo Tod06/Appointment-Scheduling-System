@@ -91,6 +91,15 @@ inside the app. Reminders are created when a patient signs in or opens their das
 
 This is an academic project. Using it with real patient data would need an institutional privacy and security review first.
 
+## Images
+
+- University of Ibadan logo (`assets/img/ui-logo.png`), and the crest cut from it (`ui-crest.png`, `favicon.png`).
+- Photographs from [Unsplash](https://unsplash.com), free to use under the [Unsplash License](https://unsplash.com/license):
+  - `hero-doctor.jpg` by Eben Kassaye
+  - `consultation.jpg` by Francisco Venâncio
+  - `signin-doctor.jpg` by the National Cancer Institute
+  - `register-doctor.jpg` by Patrick Amofah
+
 ## Group 29
 
 | Matriculation number | Name | Role |

@@ -69,9 +69,8 @@ render_head('Create an account');
 ?>
 <div class="auth">
   <div class="auth-main">
-    <a class="brand" href="<?= e(url('index.php')) ?>">
-      <?= brand_mark(30) ?>
-      <span><span class="brand-name">UHS Appointments</span><br><span class="brand-sub">University of Ibadan</span></span>
+    <a class="brand" href="<?= e(url('index.php')) ?>" aria-label="UHS Appointments home">
+      <?= brand_logo(40) ?>
     </a>
     <main class="auth-form-wrap" id="main">
       <div class="auth-form" style="max-width:440px">
@@ -121,8 +120,8 @@ render_head('Create an account');
     </main>
     <p class="muted" style="font-size:12.5px"><?= e(config('org_name')) ?></p>
   </div>
-  <aside class="auth-aside" aria-hidden="true">
-    <div class="row" style="--accent:#7fd1b9;--mark-ink:#0f2a24"><?= brand_mark(28) ?></div>
+  <aside class="auth-aside" aria-hidden="true" style="--aside-img: url('<?= e(asset('img/register-doctor.jpg')) ?>')">
+    <div class="eyebrow" style="color:#e2c46e">University Health Service</div>
     <div>
       <p class="auth-quote">Your details are only seen by the people treating you.</p>
       <div class="auth-points">

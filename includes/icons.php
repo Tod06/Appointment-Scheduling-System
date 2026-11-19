@@ -71,12 +71,14 @@ function icon(string $name, int $size = 18, string $class = ''): string
     return '<svg class="' . e($cls) . '" width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $inner . '</svg>';
 }
 
-/** The product mark: a rounded tile with a medical cross cut from a calendar. */
+/** University of Ibadan banner logo (crest and name). */
+function brand_logo(int $height = 40): string
+{
+    return '<img class="logo-banner" src="' . e(asset('img/ui-logo.png')) . '" alt="University of Ibadan" height="' . $height . '" width="' . (int) round($height * 466 / 175) . '">';
+}
+
+/** University of Ibadan crest on a navy tile, for small spaces. */
 function brand_mark(int $size = 30): string
 {
-    return '<svg class="brand-mark" width="' . $size . '" height="' . $size . '" viewBox="0 0 32 32" aria-hidden="true">'
-        . '<rect width="32" height="32" rx="9" fill="currentColor"/>'
-        . '<path d="M9 11.5h14" stroke="var(--mark-ink, #fff)" stroke-width="1.6" stroke-linecap="round" opacity=".55"/>'
-        . '<path d="M16 14.5v9M11.5 19h9" stroke="var(--mark-ink, #fff)" stroke-width="2.6" stroke-linecap="round"/>'
-        . '</svg>';
+    return '<img class="logo-crest" src="' . e(asset('img/ui-crest.png')) . '" alt="" width="' . $size . '" height="' . $size . '">';
 }

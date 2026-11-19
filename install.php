@@ -48,10 +48,7 @@ render_head('Set up');
 ?>
 <div class="auth" style="grid-template-columns:1fr">
   <div class="auth-main">
-    <span class="brand">
-      <?= brand_mark(30) ?>
-      <span><span class="brand-name">UHS Appointments</span><br><span class="brand-sub">First-time setup</span></span>
-    </span>
+    <span class="brand"><?= brand_logo(40) ?></span>
     <main class="auth-form-wrap" id="main">
       <div class="auth-form" style="max-width:460px">
         <?php if ($installed): ?>
