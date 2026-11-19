@@ -6,3 +6,6 @@ config.php
 Thumbs.db
 .vscode/
 .idea/
+
+# Local test credentials
+*.local.txt

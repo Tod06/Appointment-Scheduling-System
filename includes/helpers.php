@@ -234,8 +234,9 @@ function verify_csrf(): void
 {
     $token = $_POST['_csrf'] ?? '';
     if (!is_string($token) || !hash_equals(csrf_token(), $token)) {
-        http_response_code(419);
-        render_error_page(419, 'Page expired', 'Your session timed out or the form was opened in another tab. Go back, refresh the page and try again.');
+        // 403 rather than 419: Apache turns unknown status codes into 500 errors.
+        http_response_code(403);
+        render_error_page(403, 'Page expired', 'Your session timed out or the form was opened in another tab. Go back, refresh the page and try again.');
     }
 }
 
