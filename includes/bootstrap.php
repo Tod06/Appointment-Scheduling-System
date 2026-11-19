@@ -40,4 +40,29 @@ require __DIR__ . '/appointments.php';
 require __DIR__ . '/layout.php';
 require __DIR__ . '/components.php';
 
+/*
+ * Last line of defence for unexpected errors. Before setup has run the tables
+ * do not exist yet, so send visitors to the installer instead of a blank 500.
+ */
+set_exception_handler(function (Throwable $ex): void {
+    $missingTables = $ex instanceof PDOException && (string) $ex->getCode() === '42S02';
+    if ($missingTables && basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'install.php' && !headers_sent()) {
+        header('Location: ' . url('install.php'));
+        exit;
+    }
+    error_log('UHS Appointments: ' . $ex);
+    if (headers_sent()) {
+        exit;
+    }
+    try {
+        render_error_page(500, 'Something went wrong', config('debug')
+            ? $ex->getMessage()
+            : 'The page could not be loaded. Please try again in a moment. If it keeps happening, contact the Health Service.');
+    } catch (Throwable $inner) {
+        http_response_code(500);
+        header('Content-Type: text/plain; charset=utf-8');
+        echo 'The page could not be loaded. Please try again in a moment.';
+    }
+});
+
 start_session();
