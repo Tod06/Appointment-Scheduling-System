@@ -37,8 +37,9 @@ app_start($user, 'Overview', [
     'active' => 'admin/dashboard.php',
     'heading' => 'Health Service overview',
     'subtitle' => date('l, j F Y') . '. A summary of appointment activity at the Health Service.',
-    'actions' => '<a class="btn btn-secondary" href="' . e(url('admin/reports.php')) . '">' . icon('bar-chart', 16) . ' Reports</a>'
-        . '<a class="btn btn-primary" href="' . e(url('admin/calendar.php')) . '">' . icon('calendar', 16) . ' Calendar</a>',
+    'actions' => '<a class="btn btn-secondary" href="' . e(url('admin/calendar.php')) . '">' . icon('calendar', 16) . ' Calendar</a>'
+        . '<a class="btn btn-secondary" href="' . e(url('admin/patients.php')) . '">' . icon('users', 16) . ' Manage patients</a>'
+        . '<a class="btn btn-primary" href="' . e(url('admin/reports.php')) . '">' . icon('bar-chart', 16) . ' Reports</a>',
 ]);
 ?>
 <div class="stack">

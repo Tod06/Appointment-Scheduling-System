@@ -85,7 +85,7 @@ function clinic_types(bool $activeOnly = true): array
 const APPOINTMENT_SELECT = '
     SELECT a.*,
            p.name AS patient_name, p.email AS patient_email, p.phone AS patient_phone, p.matric_no,
-           d.name AS doctor_name, d.specialty, d.slot_minutes, d.clinic AS clinic_name
+           d.name AS doctor_name, d.specialty, d.slot_minutes, a.clinic_type AS clinic_name
     FROM appointments a
     JOIN patients p ON p.patient_id = a.patient_id
     JOIN doctors d ON d.doctor_id = a.doctor_id';
@@ -297,9 +297,9 @@ function book_appointment(array $patient, int $doctorId, string $date, string $t
 
         if ($existing) {
             q(
-                "UPDATE appointments SET doctor_id = ?, appointment_date = ?, appointment_time = ?, status = 'Rescheduled',
+                "UPDATE appointments SET doctor_id = ?, clinic_type = ?, appointment_date = ?, appointment_time = ?, status = 'Rescheduled',
                  reason = ?, reminder_sent = 0 WHERE appointment_id = ?",
-                [$doctorId, $date, $time, $reason !== '' ? $reason : $existing['reason'], $existing['appointment_id']]
+                [$doctorId, $doctor['clinic'], $date, $time, $reason !== '' ? $reason : $existing['reason'], $existing['appointment_id']]
             );
             $id = (int) $existing['appointment_id'];
             log_history($id, $existing['status'], 'Rescheduled', 'patient', (int) $patient['id'], '', [
@@ -308,8 +308,8 @@ function book_appointment(array $patient, int $doctorId, string $date, string $t
             ]);
         } else {
             q(
-                'INSERT INTO appointments (patient_id, doctor_id, appointment_date, appointment_time, reason) VALUES (?, ?, ?, ?, ?)',
-                [$patient['id'], $doctorId, $date, $time, $reason]
+                'INSERT INTO appointments (patient_id, doctor_id, clinic_type, appointment_date, appointment_time, reason) VALUES (?, ?, ?, ?, ?, ?)',
+                [$patient['id'], $doctorId, $doctor['clinic'], $date, $time, $reason]
             );
             $id = (int) $pdo->lastInsertId();
             log_history($id, null, 'Pending', 'patient', (int) $patient['id'], '', ['to_date' => $date, 'to_time' => $time]);
@@ -339,7 +339,7 @@ function book_appointment(array $patient, int $doctorId, string $date, string $t
 function send_due_reminders(int $patientId): void
 {
     $due = q_all(
-        "SELECT a.appointment_id, a.appointment_date, a.appointment_time, d.name AS doctor_name, d.clinic AS clinic_name
+        "SELECT a.appointment_id, a.appointment_date, a.appointment_time, d.name AS doctor_name, a.clinic_type AS clinic_name
          FROM appointments a JOIN doctors d ON d.doctor_id = a.doctor_id
          WHERE a.patient_id = ? AND a.status = 'Approved' AND a.reminder_sent = 0
            AND TIMESTAMP(a.appointment_date, a.appointment_time) BETWEEN NOW() AND (NOW() + INTERVAL 24 HOUR)",

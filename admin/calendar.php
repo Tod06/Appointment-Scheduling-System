@@ -10,7 +10,7 @@ $doctorId = to_int(query('doctor'));
 
 $where = ['a.appointment_date BETWEEN ? AND ?', "a.status <> 'Cancelled'"];
 $params = [$weekStart, $weekEnd];
-if ($clinic !== '') { $where[] = 'd.clinic = ?'; $params[] = $clinic; }
+if ($clinic !== '') { $where[] = 'a.clinic_type = ?'; $params[] = $clinic; }
 if ($doctorId) { $where[] = 'a.doctor_id = ?'; $params[] = $doctorId; }
 $appointments = q_all(APPOINTMENT_SELECT . ' WHERE ' . implode(' AND ', $where) . ' ORDER BY a.appointment_date, a.appointment_time', $params);
 

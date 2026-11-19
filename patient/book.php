@@ -181,7 +181,7 @@ app_start($user, $title, [
     </div>
     <div class="card-footer">
       <button class="btn btn-primary btn-lg btn-block" type="submit" data-submit disabled>
-        <?= icon('check', 17) ?> <?= $existing ? 'Request new time' : 'Request appointment' ?>
+        <?= icon('check', 17) ?> <?= $existing ? 'Confirm new time' : 'Confirm booking' ?>
       </button>
       <p class="hint" style="margin-top:10px;text-align:center">The slot is held for you as soon as you submit.</p>
     </div>

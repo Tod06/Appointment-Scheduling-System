@@ -24,8 +24,10 @@ and export reports.
 Also included: week calendar views, doctor availability settings, a full status history for every appointment,
 an administrator audit log, and sign-in throttling.
 
-**Database entities (Table 3.2):** Patient, Doctor (including its clinic and specialty), Appointment and Admin.
-The clinic type a patient chooses when booking comes from the clinic field of the doctors the administrator adds.
+**Database entities (Table 3.2, Figure 3.4):** `patients` (patient_id, matric_no, name, email, phone),
+`doctors` (doctor_id, name, clinic, specialty), `appointments` (appointment_id, patient_id, doctor_id, clinic_type,
+appointment_date, appointment_time, status, reason) and `admins` (admin_id, name, email, password_hash).
+The clinic types a patient can choose come from the clinic field of the doctors the administrator adds.
 
 **Appointment statuses:** Pending, Approved, Rescheduled, Completed, Cancelled.
 

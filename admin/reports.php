@@ -14,7 +14,7 @@ $status = in_array(query('status'), STATUSES, true) ? query('status') : '';
 
 $where = ['a.appointment_date BETWEEN ? AND ?'];
 $params = [$from, $to];
-if ($clinic !== '') { $where[] = 'd.clinic = ?'; $params[] = $clinic; }
+if ($clinic !== '') { $where[] = 'a.clinic_type = ?'; $params[] = $clinic; }
 if ($doctorId) { $where[] = 'a.doctor_id = ?'; $params[] = $doctorId; }
 if ($status !== '') { $where[] = 'a.status = ?'; $params[] = $status; }
 $whereSql = implode(' AND ', $where);
@@ -29,7 +29,7 @@ if (query('export') === 'csv') {
     fwrite($out, "\xEF\xBB\xBF"); // lets Excel detect UTF-8
     // Stop spreadsheet apps from treating text as a formula.
     $cell = fn ($v) => preg_match('/^[=+\-@\t\r]/', (string) $v) ? "'" . $v : (string) $v;
-    fputcsv($out, ['Reference', 'Date', 'Time', 'Status', 'Patient', 'Matric number', 'Email', 'Phone', 'Clinic', 'Doctor', 'Reason', 'Booked on']);
+    fputcsv($out, ['Reference', 'Date', 'Time', 'Status', 'Patient', 'Matric number', 'Email', 'Phone', 'Clinic type', 'Doctor', 'Reason', 'Booked on']);
     foreach ($rows as $r) {
         fputcsv($out, array_map($cell, [
             str_pad((string) $r['appointment_id'], 5, '0', STR_PAD_LEFT), $r['appointment_date'], substr($r['appointment_time'], 0, 5), $r['status'],
@@ -49,9 +49,9 @@ $completionRate = $completionBase ? round($counts['Completed'] / $completionBase
 $uniquePatients = (int) q_val("SELECT COUNT(DISTINCT a.patient_id) FROM appointments a JOIN doctors d ON d.doctor_id = a.doctor_id WHERE $whereSql", $params);
 
 $byClinic = q_all(
-    "SELECT d.clinic AS name, COUNT(*) AS n, SUM(a.status = 'Completed') AS done, SUM(a.status = 'Cancelled') AS cancelled
+    "SELECT a.clinic_type AS name, COUNT(*) AS n, SUM(a.status = 'Completed') AS done, SUM(a.status = 'Cancelled') AS cancelled
      FROM appointments a JOIN doctors d ON d.doctor_id = a.doctor_id
-     WHERE $whereSql GROUP BY d.clinic ORDER BY n DESC",
+     WHERE $whereSql GROUP BY a.clinic_type ORDER BY n DESC",
     $params
 );
 $byDoctor = q_all(
@@ -133,7 +133,7 @@ app_start($user, 'Reports', [
 
   <div class="grid grid-2">
     <section class="card">
-      <div class="card-header"><h2>By clinic</h2></div>
+      <div class="card-header"><h2>By clinic type</h2></div>
       <div class="card-body">
         <?php if ($byClinic): ?>
           <div class="bar-list">

@@ -13,7 +13,7 @@ $search = mb_substr(query('q'), 0, 80);
 $where = ['1=1'];
 $params = [];
 if ($status !== '') { $where[] = 'a.status = ?'; $params[] = $status; }
-if ($clinic !== '') { $where[] = 'd.clinic = ?'; $params[] = $clinic; }
+if ($clinic !== '') { $where[] = 'a.clinic_type = ?'; $params[] = $clinic; }
 if ($doctorId) { $where[] = 'a.doctor_id = ?'; $params[] = $doctorId; }
 if ($from !== '') { $where[] = 'a.appointment_date >= ?'; $params[] = $from; }
 if ($to !== '') { $where[] = 'a.appointment_date <= ?'; $params[] = $to; }

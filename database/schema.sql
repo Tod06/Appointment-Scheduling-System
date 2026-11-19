@@ -58,6 +58,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   appointment_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   patient_id INT UNSIGNED NOT NULL,
   doctor_id INT UNSIGNED NOT NULL,
+  clinic_type VARCHAR(120) NOT NULL,
   appointment_date DATE NOT NULL,
   appointment_time TIME NOT NULL,
   reason VARCHAR(500) NOT NULL DEFAULT '',

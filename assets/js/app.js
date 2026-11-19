@@ -289,7 +289,7 @@
     form.addEventListener('submit', function (e) {
       if (submit.disabled) { e.preventDefault(); return; }
       submit.disabled = true;
-      submit.textContent = 'Sending request...';
+      submit.textContent = 'Confirming...';
     });
 
     renderDoctors();
