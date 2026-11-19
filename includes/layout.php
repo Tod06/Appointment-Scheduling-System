@@ -238,19 +238,26 @@ function site_header(?array $user, string $active = 'index.php'): void
     <a class="brand" href="<?= e(url('index.php')) ?>" aria-label="UHS Appointments, University of Ibadan">
       <?= brand_logo(40) ?>
     </a>
-    <nav class="site-links" aria-label="Pages">
-      <?php foreach (public_pages() as $file => $label): ?>
-        <a class="link<?= $file === $active ? ' is-active' : '' ?>" href="<?= e(url($file)) ?>"<?= $file === $active ? ' aria-current="page"' : '' ?>><?= e($label) ?></a>
-      <?php endforeach; ?>
-    </nav>
-    <div class="site-nav">
+    <div class="site-menu" id="site-menu" data-site-menu>
+      <nav class="site-links" aria-label="Pages">
+        <?php foreach (public_pages() as $file => $label): ?>
+          <a class="link<?= $file === $active ? ' is-active' : '' ?>" href="<?= e(url($file)) ?>"<?= $file === $active ? ' aria-current="page"' : '' ?>><?= e($label) ?></a>
+        <?php endforeach; ?>
+      </nav>
+      <div class="site-actions">
+        <?php if ($user): ?>
+          <a class="btn btn-primary btn-sm" href="<?= e(url(home_for($user['role']))) ?>">Dashboard <?= icon('arrow-right', 15) ?></a>
+        <?php else: ?>
+          <a class="link" href="<?= e(url('login.php')) ?>">Sign in</a>
+          <a class="btn btn-primary btn-sm" href="<?= e(url('register.php')) ?>">Create account</a>
+        <?php endif; ?>
+      </div>
+    </div>
+    <div class="site-tools">
       <?= theme_toggle() ?>
-      <?php if ($user): ?>
-        <a class="btn btn-primary btn-sm" href="<?= e(url(home_for($user['role']))) ?>">Dashboard <?= icon('arrow-right', 15) ?></a>
-      <?php else: ?>
-        <a class="link" href="<?= e(url('login.php')) ?>">Sign in</a>
-        <a class="btn btn-primary btn-sm" href="<?= e(url('register.php')) ?>">Create account</a>
-      <?php endif; ?>
+      <button type="button" class="btn btn-ghost btn-icon site-menu-toggle" aria-controls="site-menu" aria-expanded="false" aria-label="Open menu" data-site-menu-toggle>
+        <?= icon('menu', 20, 'icon-open') ?><?= icon('x', 20, 'icon-close') ?>
+      </button>
     </div>
   </div>
 </header>

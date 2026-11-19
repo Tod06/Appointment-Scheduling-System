@@ -66,6 +66,44 @@
   });
   syncThemeButtons();
 
+  /* ---------- Public header menu (tablets and phones) ---------- */
+
+  var siteMenu = $('[data-site-menu]');
+  var siteMenuToggle = $('[data-site-menu-toggle]');
+
+  function setSiteMenu(open) {
+    if (!siteMenu || !siteMenuToggle) return;
+    siteMenu.classList.toggle('is-open', open);
+    siteMenuToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    siteMenuToggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  }
+
+  if (siteMenu && siteMenuToggle) {
+    siteMenuToggle.addEventListener('click', function () {
+      var open = siteMenuToggle.getAttribute('aria-expanded') !== 'true';
+      setSiteMenu(open);
+      if (open) {
+        var first = $('a', siteMenu);
+        if (first) first.focus();
+      }
+    });
+    siteMenu.addEventListener('click', function (e) {
+      if (e.target.closest('a')) setSiteMenu(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && siteMenu.classList.contains('is-open')) {
+        setSiteMenu(false);
+        siteMenuToggle.focus();
+      }
+    });
+    document.addEventListener('click', function (e) {
+      if (siteMenu.classList.contains('is-open') && !e.target.closest('.site-header')) setSiteMenu(false);
+    });
+    window.addEventListener('resize', function () {
+      if (window.innerWidth > 900) setSiteMenu(false);
+    });
+  }
+
   /* ---------- Shared click behaviour ---------- */
 
   document.addEventListener('click', function (e) {
