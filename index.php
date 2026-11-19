@@ -2,10 +2,10 @@
 require __DIR__ . '/includes/bootstrap.php';
 
 $user = current_user();
-$doctors = q_all('SELECT name, clinic, specialty, work_days, start_time, end_time FROM doctors WHERE is_active = 1 ORDER BY clinic, name');
-$sample = $doctors[0] ?? null;
+$doctorCount = (int) q_val('SELECT COUNT(*) FROM doctors WHERE is_active = 1');
+$sample = q_one('SELECT name, clinic FROM doctors WHERE is_active = 1 ORDER BY clinic, name LIMIT 1');
 
-// Sample week for the preview card, starting from the next weekday.
+// Sample week for the preview card, starting from today and skipping weekends.
 $previewDays = [];
 for ($i = 0, $d = strtotime('today'); count($previewDays) < 5; $i++) {
     $day = strtotime("+$i days", $d);
@@ -15,7 +15,7 @@ for ($i = 0, $d = strtotime('today'); count($previewDays) < 5; $i++) {
 }
 
 render_head('Book a consultation');
-site_header($user);
+site_header($user, 'index.php');
 ?>
 <main id="main">
   <div class="container">
@@ -33,7 +33,7 @@ site_header($user);
           <?php endif; ?>
         </div>
         <div class="hero-facts">
-          <span><?= icon('stethoscope', 16) ?> <?= e(plural(count($doctors), 'doctor')) ?> taking bookings</span>
+          <span><?= icon('stethoscope', 16) ?> <?= e(plural($doctorCount, 'doctor')) ?> taking bookings</span>
           <span><?= icon('calendar-check', 16) ?> Cancel or reschedule online</span>
           <span><?= icon('bell', 16) ?> Status updates and reminders</span>
         </div>
@@ -82,56 +82,28 @@ site_header($user);
     </section>
   </div>
 
-  <section class="section" id="how">
+  <section class="section">
     <div class="container">
-      <div class="section-head">
-        <h2>Three steps from request to consultation.</h2>
-        <p>Every request is stored in one central record, so patients and authorized staff work with the same scheduling information.</p>
-      </div>
-      <div class="how-wrap">
-      <div class="how-photo"><img src="<?= e(asset('img/consultation.jpg')) ?>" alt="A doctor at her desk consulting a young patient" width="1600" height="1067" loading="lazy"></div>
-      <div class="how">
-        <div class="how-step">
-          <div class="how-num">01</div>
-          <h3>Choose a clinic type and doctor</h3>
-          <p>See each doctor's clinic, specialty and the days and hours they consult before you book.</p>
-        </div>
-        <div class="how-step">
-          <div class="how-num">02</div>
-          <h3>Pick a free time</h3>
-          <p>The system checks that the period is available. If it is taken, you are asked to choose another time.</p>
-        </div>
-        <div class="how-step">
-          <div class="how-num">03</div>
-          <h3>Track its status</h3>
-          <p>Your doctor approves the request and its status is updated. Cancel or request a new time from your dashboard.</p>
-        </div>
-      </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="section" id="doctors">
-    <div class="container">
-      <div class="section-head">
-        <h2>Doctors taking appointments.</h2>
-        <p>Consultation days and hours for each doctor. You will see the exact free times when you book.</p>
-      </div>
-      <?php if ($doctors): ?>
-      <div class="clinic-grid">
-        <?php foreach ($doctors as $d): ?>
-          <div class="clinic">
-            <h3><?= e($d['name']) ?></h3>
-            <p><?= e($d['clinic']) ?><?= $d['specialty'] !== '' ? ' · ' . e($d['specialty']) : '' ?></p>
-            <div class="meta">
-              <?= icon('clock', 14) ?> <?= e(describe_work_days($d['work_days'])) ?>, <?= e(fmt_time($d['start_time'])) ?> to <?= e(fmt_time($d['end_time'])) ?>
-            </div>
+      <div class="explore">
+        <a class="card explore-card" href="<?= e(url('how-it-works.php')) ?>">
+          <img src="<?= e(asset('img/consultation.jpg')) ?>" alt="" width="1600" height="1067" loading="lazy">
+          <div class="explore-body">
+            <span class="eyebrow">Step by step</span>
+            <h3>How it works</h3>
+            <p>From choosing a clinic type and doctor to tracking your appointment's status.</p>
+            <span class="go">Read how booking works <?= icon('arrow-right', 15) ?></span>
           </div>
-        <?php endforeach; ?>
+        </a>
+        <a class="card explore-card" href="<?= e(url('doctors.php')) ?>">
+          <span class="icon-panel"><?= icon('stethoscope', 36) ?></span>
+          <div class="explore-body">
+            <span class="eyebrow"><?= e(plural($doctorCount, 'doctor')) ?></span>
+            <h3>Doctors and consultation hours</h3>
+            <p>See each doctor's clinic, specialty and the days and hours they consult.</p>
+            <span class="go">View doctors <?= icon('arrow-right', 15) ?></span>
+          </div>
+        </a>
       </div>
-      <?php else: ?>
-        <div class="card"><?= empty_state('stethoscope', 'No doctors yet', 'Bookings open once the administrator adds doctors.') ?></div>
-      <?php endif; ?>
     </div>
   </section>
 
@@ -172,11 +144,6 @@ site_header($user);
     </div>
   </section>
 </main>
-
-<footer class="site-footer">
-  <div class="container">
-    <span class="row" style="gap:14px"><?= brand_logo(34) ?> <span><?= e(config('org_name')) ?></span></span>
-    <span>For emergencies, go straight to the Health Service. Do not wait for an appointment.</span>
-  </div>
-</footer>
-<?php render_foot();
+<?php
+site_footer();
+render_foot();

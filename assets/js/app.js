@@ -43,6 +43,29 @@
     if (e.key === 'Escape' && app) app.classList.remove('nav-open');
   });
 
+  /* ---------- Light and dark mode ---------- */
+
+  function syncThemeButtons() {
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var label = dark ? 'Switch to light mode' : 'Switch to dark mode';
+    $$('[data-theme-toggle]').forEach(function (btn) {
+      btn.setAttribute('aria-label', label);
+      btn.setAttribute('title', label);
+      btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+    });
+    var meta = $('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', dark ? '#0e1012' : '#f5f4f0');
+  }
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('[data-theme-toggle]')) return;
+    var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    try { localStorage.setItem('uhs-theme', next); } catch (err) { /* storage blocked: the choice lasts for this page only */ }
+    syncThemeButtons();
+  });
+  syncThemeButtons();
+
   /* ---------- Shared click behaviour ---------- */
 
   document.addEventListener('click', function (e) {

@@ -6,14 +6,17 @@ function render_head(string $title, string $bodyClass = ''): void
     $fullTitle = $title === '' ? config('app_name', 'UHS Appointments') : $title . ' | ' . config('app_name', 'UHS Appointments');
     ?>
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title><?= e($fullTitle) ?></title>
   <meta name="description" content="Book, track and manage appointments at the <?= e(config('org_name')) ?>.">
-  <meta name="theme-color" content="#f5f4f0" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#0e1012" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f5f4f0">
+  <script>
+    /* Apply the saved theme before the page is drawn. Light is the default. */
+    try { if (localStorage.getItem('uhs-theme') === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); document.querySelector('meta[name=theme-color]').content = '#0e1012'; } } catch (e) {}
+  </script>
   <link rel="icon" type="image/png" href="<?= e(asset('img/favicon.png')) ?>">
   <link rel="apple-touch-icon" href="<?= e(asset('img/ui-crest.png')) ?>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -25,6 +28,13 @@ function render_head(string $title, string $bodyClass = ''): void
 <body class="<?= e($bodyClass) ?>">
 <a class="skip-link" href="#main">Skip to content</a>
 <?php
+}
+
+/** Button that switches between light and dark mode (see assets/js/app.js). */
+function theme_toggle(string $extraClass = ''): string
+{
+    return '<button type="button" class="btn btn-ghost btn-icon theme-toggle' . ($extraClass !== '' ? ' ' . $extraClass : '') . '" data-theme-toggle aria-label="Switch to dark mode" title="Switch to dark mode">'
+        . icon('moon', 18, 'icon-moon') . icon('sun', 18, 'icon-sun') . '</button>';
 }
 
 function render_foot(): void
@@ -176,6 +186,7 @@ function app_start(array $user, string $title, array $opts = []): void
         <strong><?= e($title) ?></strong>
       </div>
       <div class="topbar-actions">
+        <?= theme_toggle() ?>
         <?php if ($user['role'] === 'patient'): ?>
           <a class="btn btn-primary btn-sm hide-xs" href="<?= e(url('patient/book.php')) ?>"><?= icon('plus', 15) ?> New appointment</a>
         <?php endif; ?>
@@ -208,8 +219,18 @@ function app_end(): void
     render_foot();
 }
 
-/** Header used on the public landing page. */
-function site_header(?array $user): void
+/** Pages linked from the public header and footer. */
+function public_pages(): array
+{
+    return [
+        'index.php' => 'Home',
+        'how-it-works.php' => 'How it works',
+        'doctors.php' => 'Doctors',
+    ];
+}
+
+/** Header used on the public pages. $active is the current page file. */
+function site_header(?array $user, string $active = 'index.php'): void
 {
     ?>
 <header class="site-header">
@@ -217,17 +238,44 @@ function site_header(?array $user): void
     <a class="brand" href="<?= e(url('index.php')) ?>" aria-label="UHS Appointments, University of Ibadan">
       <?= brand_logo(40) ?>
     </a>
-    <nav class="site-nav" aria-label="Site">
-      <a class="link hide-sm" href="#how">How it works</a>
-      <a class="link hide-sm" href="#doctors">Doctors</a>
+    <nav class="site-links" aria-label="Pages">
+      <?php foreach (public_pages() as $file => $label): ?>
+        <a class="link<?= $file === $active ? ' is-active' : '' ?>" href="<?= e(url($file)) ?>"<?= $file === $active ? ' aria-current="page"' : '' ?>><?= e($label) ?></a>
+      <?php endforeach; ?>
+    </nav>
+    <div class="site-nav">
+      <?= theme_toggle() ?>
       <?php if ($user): ?>
-        <a class="btn btn-primary btn-sm" href="<?= e(url(home_for($user['role']))) ?>">Open dashboard <?= icon('arrow-right', 15) ?></a>
+        <a class="btn btn-primary btn-sm" href="<?= e(url(home_for($user['role']))) ?>">Dashboard <?= icon('arrow-right', 15) ?></a>
       <?php else: ?>
         <a class="link" href="<?= e(url('login.php')) ?>">Sign in</a>
         <a class="btn btn-primary btn-sm" href="<?= e(url('register.php')) ?>">Create account</a>
       <?php endif; ?>
-    </nav>
+    </div>
   </div>
 </header>
+<?php
+}
+
+/** Footer used on the public pages. */
+function site_footer(): void
+{
+    ?>
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <?= brand_logo(38) ?>
+      <p><?= e(config('org_name')) ?></p>
+    </div>
+    <nav class="footer-links" aria-label="Footer">
+      <?php foreach (public_pages() as $file => $label): ?>
+        <a href="<?= e(url($file)) ?>"><?= e($label) ?></a>
+      <?php endforeach; ?>
+      <a href="<?= e(url('login.php')) ?>">Sign in</a>
+      <a href="<?= e(url('register.php')) ?>">Create account</a>
+    </nav>
+    <p class="footer-note"><?= icon('circle-alert', 15) ?> For emergencies, go straight to the Health Service. Do not wait for an appointment.</p>
+  </div>
+</footer>
 <?php
 }

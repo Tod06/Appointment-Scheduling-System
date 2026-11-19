@@ -69,6 +69,7 @@ render_head('Create an account');
 ?>
 <div class="auth">
   <div class="auth-main">
+    <div class="auth-tools"><?= theme_toggle() ?></div>
     <a class="brand" href="<?= e(url('index.php')) ?>" aria-label="UHS Appointments home">
       <?= brand_logo(40) ?>
     </a>

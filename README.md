@@ -21,7 +21,7 @@ and export reports.
 | FR8 Summaries and reports | `admin/dashboard.php`, `admin/reports.php` (print and CSV export) |
 | FR9 Notifications and reminders | `notifications.php`; reminders are created for approved visits within 24 hours |
 
-Also included: week calendar views, doctor availability settings, a full status history for every appointment,
+Also included: a light and dark mode switch (light by default, remembered per browser), week calendar views, doctor availability settings, a full status history for every appointment,
 an administrator audit log, and sign-in throttling.
 
 **Database entities (Table 3.2, Figure 3.4):** `patients` (patient_id, matric_no, name, email, phone),
@@ -39,7 +39,10 @@ The clinic types a patient can choose come from the clinic field of the doctors 
 - XAMPP for local development, InfinityFree for hosting
 
 ```
-├── index.php, login.php, register.php, logout.php
+├── index.php              Home page
+├── how-it-works.php       How booking works and what each status means
+├── doctors.php            Doctors with their clinic, specialty and consultation hours
+├── login.php, register.php, logout.php
 ├── appointment.php        One appointment, shared by all roles
 ├── notifications.php, account.php
 ├── patient/               Patient pages

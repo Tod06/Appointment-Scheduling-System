@@ -48,6 +48,7 @@ render_head('Set up');
 ?>
 <div class="auth" style="grid-template-columns:1fr">
   <div class="auth-main">
+    <div class="auth-tools"><?= theme_toggle() ?></div>
     <span class="brand"><?= brand_logo(40) ?></span>
     <main class="auth-form-wrap" id="main">
       <div class="auth-form" style="max-width:460px">
