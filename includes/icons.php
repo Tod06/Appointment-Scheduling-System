@@ -80,7 +80,10 @@ function icon(string $name, int $size = 18, string $class = ''): string
 function brand_logo(int $height = 40): string
 {
     return '<img class="logo-banner logo-wide" src="' . e(asset('img/ui-logo.png')) . '" alt="University of Ibadan" height="' . $height . '" width="' . (int) round($height * 466 / 175) . '">'
-        . '<img class="logo-crest logo-narrow" src="' . e(asset('img/ui-crest.png')) . '" alt="University of Ibadan" width="44" height="44">';
+        . '<span class="logo-narrow brand-lockup">'
+        . '<img class="logo-crest" src="' . e(asset('img/ui-crest.png')) . '" alt="" width="40" height="40">'
+        . '<span class="brand-words"><span class="brand-name">UHS Appointments</span><span class="brand-sub">University of Ibadan</span></span>'
+        . '</span>';
 }
 
 /** University of Ibadan crest on its own. */
