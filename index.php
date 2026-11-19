@@ -21,9 +21,9 @@ site_header($user);
   <div class="container">
     <section class="hero">
       <div>
-        <span class="hero-kicker"><span class="pill">New</span> Online booking for students and staff</span>
-        <h1>See a doctor at the Health Service <em>without the queue.</em></h1>
-        <p class="hero-lead">Choose the clinic type, pick a doctor and a free time that suits you, and follow your request until it is confirmed. No early-morning lines, no lost cards.</p>
+        <span class="hero-kicker"><span class="pill">UHS</span> University of Ibadan</span>
+        <h1>Appointment scheduling for the <em>University Health Service.</em></h1>
+        <p class="hero-lead">Register, view available consultation periods, request an appointment with a doctor, cancel or reschedule it, and receive its status, all in one place.</p>
         <div class="hero-actions">
           <?php if ($user): ?>
             <a class="btn btn-primary btn-lg" href="<?= e(url(home_for($user['role']))) ?>">Go to your dashboard <?= icon('arrow-right', 17) ?></a>
@@ -35,7 +35,7 @@ site_header($user);
         <div class="hero-facts">
           <span><?= icon('stethoscope', 16) ?> <?= e(plural(count($doctors), 'doctor')) ?> taking bookings</span>
           <span><?= icon('calendar-check', 16) ?> Cancel or reschedule online</span>
-          <span><?= icon('shield-check', 16) ?> Your details stay private</span>
+          <span><?= icon('bell', 16) ?> Status updates and reminders</span>
         </div>
       </div>
 
@@ -85,7 +85,7 @@ site_header($user);
     <div class="container">
       <div class="section-head">
         <h2>Three steps from request to consultation.</h2>
-        <p>Every request is recorded in one place, so you, your doctor and the clinic staff always see the same information.</p>
+        <p>Every request is stored in one central record, so patients and authorized staff work with the same scheduling information.</p>
       </div>
       <div class="how">
         <div class="how-step">
@@ -96,12 +96,12 @@ site_header($user);
         <div class="how-step">
           <div class="how-num">02</div>
           <h3>Pick a free time</h3>
-          <p>Only open slots can be selected. A slot is held for you the moment you submit, so nobody else can take it.</p>
+          <p>The system checks that the period is available. If it is taken, you are asked to choose another time.</p>
         </div>
         <div class="how-step">
           <div class="how-num">03</div>
-          <h3>Get confirmed</h3>
-          <p>Your doctor approves the request and you are notified. Cancel or move it from your dashboard if plans change.</p>
+          <h3>Track its status</h3>
+          <p>Your doctor approves the request and its status is updated. Cancel or request a new time from your dashboard.</p>
         </div>
       </div>
     </div>

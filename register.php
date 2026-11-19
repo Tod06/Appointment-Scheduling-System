@@ -128,7 +128,7 @@ render_head('Create an account');
       <div class="auth-points">
         <div class="auth-point"><?= icon('lock', 18) ?> Passwords are stored as one-way hashes, never as plain text.</div>
         <div class="auth-point"><?= icon('shield-check', 18) ?> Doctors see only their own patients' appointments.</div>
-        <div class="auth-point"><?= icon('id-card', 18) ?> Your matric number links visits to your student record at the clinic.</div>
+        <div class="auth-point"><?= icon('id-card', 18) ?> Your matric number identifies you to Health Service staff.</div>
       </div>
     </div>
     <p class="small">For emergencies, go straight to the Health Service.</p>
