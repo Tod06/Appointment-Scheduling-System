@@ -73,13 +73,17 @@ function icon(string $name, int $size = 18, string $class = ''): string
     return '<svg class="' . e($cls) . '" width="' . $size . '" height="' . $size . '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' . $inner . '</svg>';
 }
 
-/** University of Ibadan banner logo (crest and name). */
+/**
+ * University of Ibadan logo. The wide banner shows on larger screens and the
+ * crest on its own shows on phones and tablets (switched in app.css).
+ */
 function brand_logo(int $height = 40): string
 {
-    return '<img class="logo-banner" src="' . e(asset('img/ui-logo.png')) . '" alt="University of Ibadan" height="' . $height . '" width="' . (int) round($height * 466 / 175) . '">';
+    return '<img class="logo-banner logo-wide" src="' . e(asset('img/ui-logo.png')) . '" alt="University of Ibadan" height="' . $height . '" width="' . (int) round($height * 466 / 175) . '">'
+        . '<img class="logo-crest logo-narrow" src="' . e(asset('img/ui-crest.png')) . '" alt="University of Ibadan" width="44" height="44">';
 }
 
-/** University of Ibadan crest on a navy tile, for small spaces. */
+/** University of Ibadan crest on its own. */
 function brand_mark(int $size = 30): string
 {
     return '<img class="logo-crest" src="' . e(asset('img/ui-crest.png')) . '" alt="" width="' . $size . '" height="' . $size . '">';

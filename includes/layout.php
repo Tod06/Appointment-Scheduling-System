@@ -17,8 +17,9 @@ function render_head(string $title, string $bodyClass = ''): void
     /* Apply the saved theme before the page is drawn. Light is the default. */
     try { if (localStorage.getItem('uhs-theme') === 'dark') { document.documentElement.setAttribute('data-theme', 'dark'); document.querySelector('meta[name=theme-color]').content = '#0e1012'; } } catch (e) {}
   </script>
-  <link rel="icon" type="image/png" href="<?= e(asset('img/favicon.png')) ?>">
-  <link rel="apple-touch-icon" href="<?= e(asset('img/ui-crest.png')) ?>">
+  <link rel="icon" type="image/png" sizes="32x32" href="<?= e(asset('img/favicon-32.png')) ?>">
+  <link rel="icon" type="image/png" sizes="64x64" href="<?= e(asset('img/favicon.png')) ?>">
+  <link rel="apple-touch-icon" sizes="180x180" href="<?= e(asset('img/apple-touch-icon.png')) ?>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap">
@@ -180,6 +181,7 @@ function app_start(array $user, string $title, array $opts = []): void
   <div class="main">
     <header class="topbar">
       <button class="btn btn-ghost btn-icon menu-toggle" type="button" aria-label="Open menu" aria-controls="sidebar" data-nav-toggle><?= icon('menu', 18) ?></button>
+      <a class="topbar-crest" href="<?= e(url(home_for($user['role']))) ?>" aria-label="UHS Appointments home"><?= brand_mark(34) ?></a>
       <div class="topbar-title">
         <span><?= e(role_label($user['role'])) ?></span>
         <?= icon('chevron-right', 14) ?>
