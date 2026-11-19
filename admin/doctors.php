@@ -2,7 +2,7 @@
 require dirname(__DIR__) . '/includes/bootstrap.php';
 
 $user = require_role('admin');
-$clinics = q_all('SELECT id, name, is_active FROM clinics ORDER BY name');
+$clinics = clinic_types(false);
 $idParam = $_GET['id'] ?? $_POST['id'] ?? '';
 $isNew = $idParam === 'new';
 $id = $isNew ? 0 : to_int($idParam);
@@ -19,7 +19,7 @@ if ($isNew || $id) {
         'email' => $doctor['email'] ?? '',
         'phone' => $doctor['phone'] ?? '',
         'specialty' => $doctor['specialty'] ?? '',
-        'clinic_id' => (int) ($doctor['clinic_id'] ?? (to_int(query('clinic')) ?: 0)),
+        'clinic' => $doctor['clinic'] ?? query('clinic'),
         'is_active' => (int) ($doctor['is_active'] ?? 1),
     ];
     $schedule = [
@@ -36,7 +36,7 @@ if ($isNew || $id) {
             'email' => mb_strtolower(post('email')),
             'phone' => post('phone'),
             'specialty' => post('specialty'),
-            'clinic_id' => to_int(post('clinic_id')),
+            'clinic' => post('clinic'),
             'is_active' => post('is_active') === '1' ? 1 : 0,
         ];
         $password = (string) ($_POST['password'] ?? '');
@@ -47,7 +47,7 @@ if ($isNew || $id) {
         if (mb_strlen($form['name']) < 4 || mb_strlen($form['name']) > 120) $errors[] = 'Enter the doctor\'s full name.';
         if (!valid_email($form['email'])) $errors[] = 'Enter a valid email address.';
         if ($form['phone'] !== '' && !valid_phone($form['phone'])) $errors[] = 'Enter a valid phone number or leave it blank.';
-        if (!in_array($form['clinic_id'], array_map(fn ($c) => (int) $c['id'], $clinics), true)) $errors[] = 'Choose a clinic.';
+        if (mb_strlen($form['clinic']) < 2 || mb_strlen($form['clinic']) > 120) $errors[] = 'Enter the clinic the doctor consults in.';
         if (!$errors && q_val('SELECT COUNT(*) FROM doctors WHERE email = ? AND id <> ?', [$form['email'], $id])) $errors[] = 'Another doctor already uses this email.';
         if ($isNew && $password === '') {
             $errors[] = 'Set a password so the doctor can sign in.';
@@ -57,12 +57,12 @@ if ($isNew || $id) {
 
         if (!$errors) {
             $values = [
-                $form['clinic_id'], $form['name'], $form['specialty'], $form['email'], $form['phone'],
+                $form['clinic'], $form['name'], $form['specialty'], $form['email'], $form['phone'],
                 implode(',', $schedule['days']), $schedule['start'] . ':00', $schedule['end'] . ':00', $schedule['slot'], $form['is_active'],
             ];
             if ($isNew) {
                 q(
-                    'INSERT INTO doctors (clinic_id, name, specialty, email, phone, work_days, start_time, end_time, slot_minutes, is_active, password_hash)
+                    'INSERT INTO doctors (clinic, name, specialty, email, phone, work_days, start_time, end_time, slot_minutes, is_active, password_hash)
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     array_merge($values, [password_hash($password, PASSWORD_DEFAULT)])
                 );
@@ -71,7 +71,7 @@ if ($isNew || $id) {
                 flash('success', $form['name'] . ' has been added and can now sign in.');
             } else {
                 q(
-                    'UPDATE doctors SET clinic_id = ?, name = ?, specialty = ?, email = ?, phone = ?, work_days = ?, start_time = ?, end_time = ?, slot_minutes = ?, is_active = ? WHERE id = ?',
+                    'UPDATE doctors SET clinic = ?, name = ?, specialty = ?, email = ?, phone = ?, work_days = ?, start_time = ?, end_time = ?, slot_minutes = ?, is_active = ? WHERE id = ?',
                     array_merge($values, [$id])
                 );
                 if ($password !== '') {
@@ -107,13 +107,10 @@ if ($isNew || $id) {
       <div class="card-body form-grid cols-2">
         <div class="field span-2"><label class="label" for="name">Full name</label><input class="input" id="name" name="name" value="<?= e($form['name']) ?>" required></div>
         <div class="field">
-          <label class="label" for="clinic_id">Clinic</label>
-          <select class="select" id="clinic_id" name="clinic_id" required>
-            <option value="">Choose a clinic</option>
-            <?php foreach ($clinics as $c): ?>
-              <option value="<?= (int) $c['id'] ?>" <?= $form['clinic_id'] === (int) $c['id'] ? 'selected' : '' ?>><?= e($c['name']) ?><?= $c['is_active'] ? '' : ' (inactive)' ?></option>
-            <?php endforeach; ?>
-          </select>
+          <label class="label" for="clinic">Clinic</label>
+          <input class="input" id="clinic" name="clinic" value="<?= e($form['clinic']) ?>" list="clinic-options" maxlength="120" required>
+          <datalist id="clinic-options"><?php foreach ($clinics as $c): ?><option value="<?= e($c) ?>"><?php endforeach; ?></datalist>
+          <span class="hint">Patients choose this as the clinic type when booking.</span>
         </div>
         <div class="field"><label class="label" for="specialty">Specialty</label><input class="input" id="specialty" name="specialty" value="<?= e($form['specialty']) ?>" placeholder="General Practitioner"></div>
         <div class="field"><label class="label" for="email">Email</label><input class="input" type="email" id="email" name="email" value="<?= e($form['email']) ?>" required><span class="hint">Used to sign in.</span></div>
@@ -143,15 +140,15 @@ if ($isNew || $id) {
 }
 
 /* ---------- Doctor list ---------- */
-$clinicFilter = to_int(query('clinic'));
-$where = $clinicFilter ? 'WHERE d.clinic_id = ?' : '';
+$clinicFilter = query('clinic');
+$where = $clinicFilter !== '' ? 'WHERE d.clinic = ?' : '';
 $rows = q_all(
-    "SELECT d.*, c.name AS clinic_name,
+    "SELECT d.*,
             SUM(a.status IN ('Pending','Approved','Rescheduled') AND a.appointment_date >= CURDATE()) AS upcoming
-     FROM doctors d JOIN clinics c ON c.id = d.clinic_id
+     FROM doctors d
      LEFT JOIN appointments a ON a.doctor_id = d.id
-     $where GROUP BY d.id ORDER BY d.is_active DESC, c.name, d.name",
-    $clinicFilter ? [$clinicFilter] : []
+     $where GROUP BY d.id ORDER BY d.is_active DESC, d.clinic, d.name",
+    $clinicFilter !== '' ? [$clinicFilter] : []
 );
 
 app_start($user, 'Doctors', [
@@ -166,7 +163,7 @@ app_start($user, 'Doctors', [
       <label class="label" for="clinic">Clinic</label>
       <select class="select" id="clinic" name="clinic" data-autosubmit>
         <option value="">All clinics</option>
-        <?php foreach ($clinics as $c): ?><option value="<?= (int) $c['id'] ?>" <?= $clinicFilter === (int) $c['id'] ? 'selected' : '' ?>><?= e($c['name']) ?></option><?php endforeach; ?>
+        <?php foreach ($clinics as $c): ?><option value="<?= e($c) ?>" <?= $clinicFilter === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
       </select>
     </div>
   </form>
@@ -183,7 +180,7 @@ app_start($user, 'Doctors', [
                   <div><div class="cell-main"><?= e($d['name']) ?></div><div class="cell-sub"><?= e($d['specialty'] ?: $d['email']) ?></div></div>
                 </div>
               </td>
-              <td><?= e($d['clinic_name']) ?></td>
+              <td><?= e($d['clinic']) ?></td>
               <td class="hide-sm">
                 <div class="cell-main" style="font-weight:400"><?= e(describe_work_days($d['work_days'])) ?></div>
                 <div class="cell-sub num"><?= e(fmt_time($d['start_time'])) ?> to <?= e(fmt_time($d['end_time'])) ?> · <?= (int) $d['slot_minutes'] ?> min</div>

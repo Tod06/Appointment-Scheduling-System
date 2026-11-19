@@ -4,7 +4,7 @@ require dirname(__DIR__) . '/includes/bootstrap.php';
 $user = require_role('admin');
 
 $status = in_array(query('status'), STATUSES, true) ? query('status') : '';
-$clinicId = to_int(query('clinic'));
+$clinic = query('clinic');
 $doctorId = to_int(query('doctor'));
 $from = valid_date(query('from')) ? query('from') : '';
 $to = valid_date(query('to')) ? query('to') : '';
@@ -13,7 +13,7 @@ $search = mb_substr(query('q'), 0, 80);
 $where = ['1=1'];
 $params = [];
 if ($status !== '') { $where[] = 'a.status = ?'; $params[] = $status; }
-if ($clinicId) { $where[] = 'd.clinic_id = ?'; $params[] = $clinicId; }
+if ($clinic !== '') { $where[] = 'd.clinic = ?'; $params[] = $clinic; }
 if ($doctorId) { $where[] = 'a.doctor_id = ?'; $params[] = $doctorId; }
 if ($from !== '') { $where[] = 'a.appointment_date >= ?'; $params[] = $from; }
 if ($to !== '') { $where[] = 'a.appointment_date <= ?'; $params[] = $to; }
@@ -34,9 +34,9 @@ $rows = q_all(
     $params
 );
 
-$clinics = q_all('SELECT id, name FROM clinics ORDER BY name');
+$clinics = clinic_types(false);
 $doctors = q_all('SELECT id, name FROM doctors ORDER BY name');
-$filtered = $status || $clinicId || $doctorId || $from || $to || $search;
+$filtered = $status || $clinic !== '' || $doctorId || $from || $to || $search;
 
 app_start($user, 'Appointments', [
     'active' => 'admin/appointments.php',
@@ -61,7 +61,7 @@ app_start($user, 'Appointments', [
       <label class="label" for="clinic">Clinic</label>
       <select class="select" id="clinic" name="clinic" data-autosubmit>
         <option value="">All</option>
-        <?php foreach ($clinics as $c): ?><option value="<?= (int) $c['id'] ?>" <?= $clinicId === (int) $c['id'] ? 'selected' : '' ?>><?= e($c['name']) ?></option><?php endforeach; ?>
+        <?php foreach ($clinics as $c): ?><option value="<?= e($c) ?>" <?= $clinic === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
       </select>
     </div>
     <div class="field">

@@ -24,24 +24,18 @@ if (!$installed && is_post()) {
     verify_csrf();
     $old = ['name' => post('name'), 'email' => mb_strtolower(post('email'))];
     $password = (string) ($_POST['password'] ?? '');
-    $doctorPassword = (string) ($_POST['doctor_password'] ?? '');
 
     if (mb_strlen($old['name']) < 3) $errors[] = 'Enter the administrator\'s full name.';
     if (!valid_email($old['email'])) $errors[] = 'Enter a valid email address.';
     if ($problem = password_problem($password)) $errors[] = 'Administrator password: ' . $problem;
-    if ($doctorPassword !== '' && ($problem = password_problem($doctorPassword))) $errors[] = 'Sample doctor password: ' . $problem;
 
     if (!$errors) {
         try {
             run_schema();
             q('INSERT INTO admins (name, email, password_hash) VALUES (?, ?, ?)', [$old['name'], $old['email'], password_hash($password, PASSWORD_DEFAULT)]);
             $adminId = (int) db()->lastInsertId();
-            $doctorCount = 0;
-            if ($doctorPassword !== '') {
-                $doctorCount = q('UPDATE doctors SET password_hash = ? WHERE password_hash IS NULL', [password_hash($doctorPassword, PASSWORD_DEFAULT)])->rowCount();
-            }
-            audit($adminId, 'system.install', 'system', null, 'Created first administrator' . ($doctorCount ? " and set passwords for $doctorCount sample doctors" : ''));
-            flash('success', 'Setup complete. Sign in as an administrator, then delete install.php from the server.');
+            audit($adminId, 'system.install', 'system', null, 'Created first administrator');
+            flash('success', 'Setup complete. Sign in as an administrator and add your doctors, then delete install.php from the server.');
             redirect('login.php?as=admin');
         } catch (PDOException $ex) {
             $errors[] = config('debug') ? 'Database error: ' . $ex->getMessage() : 'The database could not be set up. Check that the database user can create tables, or import database/schema.sql with phpMyAdmin first.';
@@ -80,11 +74,6 @@ render_head('Set up');
                 <label class="label" for="password">Administrator password</label>
                 <?= password_input('password', 'new-password') ?>
                 <span class="hint">8 or more characters, with a letter and a number.</span>
-              </div>
-              <div class="field">
-                <label class="label" for="doctor_password">Password for the sample doctors <span class="optional">Optional</span></label>
-                <?= str_replace(' required>', '>', password_input('doctor_password', 'new-password')) ?>
-                <span class="hint">Lets the seven sample doctors sign in with their <span class="mono">@uhs.test</span> emails. Leave blank to set passwords later.</span>
               </div>
               <button class="btn btn-primary btn-lg btn-block" type="submit">Finish setup <?= icon('arrow-right', 16) ?></button>
             </div>

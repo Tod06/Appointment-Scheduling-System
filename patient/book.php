@@ -17,7 +17,7 @@ if ($rid = to_int($_GET['reschedule'] ?? $_POST['reschedule'] ?? '')) {
 }
 
 $selected = [
-    'clinic' => $existing ? (int) $existing['clinic_id'] : to_int(query('clinic')),
+    'clinic' => $existing ? $existing['clinic_name'] : query('clinic'),
     'doctor' => $existing ? (int) $existing['doctor_id'] : to_int(query('doctor')),
     'date' => '',
     'time' => '',
@@ -28,7 +28,7 @@ $errors = [];
 if (is_post()) {
     verify_csrf();
     $selected = [
-        'clinic' => to_int(post('clinic_id')),
+        'clinic' => post('clinic'),
         'doctor' => to_int(post('doctor_id')),
         'date' => post('date'),
         'time' => post('time'),
@@ -49,14 +49,11 @@ if (is_post()) {
     }
 }
 
-$clinics = q_all(
-    'SELECT c.id, c.name, c.description, COUNT(d.id) AS doctors
-     FROM clinics c JOIN doctors d ON d.clinic_id = c.id AND d.is_active = 1
-     WHERE c.is_active = 1 GROUP BY c.id ORDER BY c.name'
-);
+// Clinic types come from the clinic field of active doctors (Table 3.2).
+$clinics = q_all('SELECT clinic AS name, COUNT(*) AS doctors FROM doctors WHERE is_active = 1 GROUP BY clinic ORDER BY clinic');
 $doctors = array_map(fn ($d) => [
     'id' => (int) $d['id'],
-    'clinic' => (int) $d['clinic_id'],
+    'clinic' => $d['clinic'],
     'name' => $d['name'],
     'specialty' => $d['specialty'],
     'days' => doctor_work_days($d),
@@ -64,7 +61,7 @@ $doctors = array_map(fn ($d) => [
     'daysLabel' => describe_work_days($d['work_days']),
     'minutes' => (int) $d['slot_minutes'],
     'initials' => initials($d['name']),
-], q_all('SELECT d.* FROM doctors d JOIN clinics c ON c.id = d.clinic_id WHERE d.is_active = 1 AND c.is_active = 1 ORDER BY d.name'));
+], q_all('SELECT * FROM doctors WHERE is_active = 1 ORDER BY name'));
 
 [$first, $last] = booking_window();
 $dates = [];
@@ -84,7 +81,7 @@ app_start($user, $title, [
     'active' => $existing ? 'patient/appointments.php' : 'patient/book.php',
     'subtitle' => $existing
         ? 'Currently ' . fmt_date($existing['appointment_date']) . ' at ' . fmt_time($existing['appointment_time']) . ' with ' . $existing['doctor_name'] . '. Pick a new time below.'
-        : 'Choose a clinic, a doctor and a free time. The doctor will confirm your request.',
+        : 'Choose the clinic type, a doctor and a free time. The doctor will confirm your request.',
     'back' => $existing ? [url('appointment.php?id=' . $existing['id']), 'Back to appointment'] : null,
     'errors' => $errors,
 ]);
@@ -92,7 +89,7 @@ app_start($user, $title, [
 <noscript><div class="alert alert-warning" style="margin-bottom:20px"><?= icon('circle-alert', 18) ?><div class="alert-body">Turn on JavaScript in your browser to see available times.</div></div></noscript>
 
 <?php if (!$clinics): ?>
-  <div class="card"><?= empty_state('building', 'No clinics are taking bookings', 'Please check back later or contact the Health Service.') ?></div>
+  <div class="card"><?= empty_state('stethoscope', 'No doctors are taking bookings', 'Please check back later or contact the Health Service.') ?></div>
 <?php else: ?>
 <form method="post" class="grid grid-main-aside" data-booking novalidate>
   <?= csrf_field() ?>
@@ -103,13 +100,13 @@ app_start($user, $title, [
     <section class="card step" data-step="clinic">
       <div class="step-head">
         <span class="step-num">1</span>
-        <div><h2 class="step-title">Clinic</h2><p class="step-sub">Where would you like to be seen?</p></div>
+        <div><h2 class="step-title">Clinic type</h2><p class="step-sub">What kind of consultation do you need?</p></div>
       </div>
-      <div class="choice-grid" role="radiogroup" aria-label="Clinic">
-        <?php foreach ($clinics as $c): ?>
+      <div class="choice-grid" role="radiogroup" aria-label="Clinic type">
+        <?php foreach ($clinics as $i => $c): ?>
           <div class="choice">
-            <input type="radio" name="clinic_id" id="clinic-<?= (int) $c['id'] ?>" value="<?= (int) $c['id'] ?>" <?= $selected['clinic'] === (int) $c['id'] ? 'checked' : '' ?> data-clinic-input data-name="<?= e($c['name']) ?>">
-            <label for="clinic-<?= (int) $c['id'] ?>">
+            <input type="radio" name="clinic" id="clinic-<?= $i ?>" value="<?= e($c['name']) ?>" <?= $selected['clinic'] === $c['name'] ? 'checked' : '' ?> data-clinic-input data-name="<?= e($c['name']) ?>">
+            <label for="clinic-<?= $i ?>">
               <span class="icon-box"><?= icon('building', 16) ?></span>
               <span>
                 <span class="choice-title"><?= e($c['name']) ?></span>
@@ -128,7 +125,7 @@ app_start($user, $title, [
         <div><h2 class="step-title">Doctor</h2><p class="step-sub">Each doctor consults on set days.</p></div>
       </div>
       <div data-doctors>
-        <div class="placeholder-box"><?= icon('arrow-up-right', 16) ?> Choose a clinic first.</div>
+        <div class="placeholder-box"><?= icon('arrow-up-right', 16) ?> Choose a clinic type first.</div>
       </div>
     </section>
 
@@ -177,7 +174,7 @@ app_start($user, $title, [
   <aside class="card summary">
     <div class="card-header"><h2><?= $existing ? 'New time' : 'Your appointment' ?></h2></div>
     <div class="card-body" style="padding-top:4px;padding-bottom:8px">
-      <div class="summary-row"><?= icon('building', 16) ?><div><div class="summary-label">Clinic</div><div class="summary-value is-empty" data-summary="clinic">Not chosen</div></div></div>
+      <div class="summary-row"><?= icon('building', 16) ?><div><div class="summary-label">Clinic type</div><div class="summary-value is-empty" data-summary="clinic">Not chosen</div></div></div>
       <div class="summary-row"><?= icon('stethoscope', 16) ?><div><div class="summary-label">Doctor</div><div class="summary-value is-empty" data-summary="doctor">Not chosen</div></div></div>
       <div class="summary-row"><?= icon('calendar', 16) ?><div><div class="summary-label">Date</div><div class="summary-value is-empty" data-summary="date">Not chosen</div></div></div>
       <div class="summary-row"><?= icon('clock', 16) ?><div><div class="summary-label">Time</div><div class="summary-value is-empty" data-summary="time">Not chosen</div></div></div>

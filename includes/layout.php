@@ -110,7 +110,6 @@ function nav_items(string $role): array
             '-Records',
             ['Patients', 'admin/patients.php', 'users'],
             ['Doctors', 'admin/doctors.php', 'stethoscope'],
-            ['Clinics', 'admin/clinics.php', 'building'],
             '-Oversight',
             ['Reports', 'admin/reports.php', 'bar-chart'],
             ['Audit log', 'admin/audit.php', 'history'],
@@ -223,7 +222,7 @@ function site_header(?array $user): void
     </a>
     <nav class="site-nav" aria-label="Site">
       <a class="link hide-sm" href="#how">How it works</a>
-      <a class="link hide-sm" href="#clinics">Clinics</a>
+      <a class="link hide-sm" href="#doctors">Doctors</a>
       <?php if ($user): ?>
         <a class="btn btn-primary btn-sm" href="<?= e(url(home_for($user['role']))) ?>">Open dashboard <?= icon('arrow-right', 15) ?></a>
       <?php else: ?>

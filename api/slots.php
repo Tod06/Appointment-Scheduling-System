@@ -40,7 +40,7 @@ if ($exceptId && $user['role'] === 'patient') {
     }
 }
 
-$doctor = q_one('SELECT d.* FROM doctors d JOIN clinics c ON c.id = d.clinic_id WHERE d.id = ? AND d.is_active = 1 AND c.is_active = 1', [$doctorId]);
+$doctor = q_one('SELECT * FROM doctors WHERE id = ? AND is_active = 1', [$doctorId]);
 if (!$doctor) {
     respond(404, ['error' => 'That doctor is not taking appointments.']);
 }

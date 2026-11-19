@@ -1,21 +1,14 @@
 -- UHS Appointment Scheduling System
--- Database schema and sample data (MySQL 5.7+ / MariaDB 10.3+)
+-- Database schema (MySQL 5.7+ / MariaDB 10.3+)
+-- Entities follow Table 3.2 of the project report: Patient, Doctor, Appointment
+-- and Admin, plus supporting tables for status history, notifications,
+-- the administrator audit log and sign-in throttling.
 --
 -- Import this file with phpMyAdmin (Import tab) into an empty database,
 -- or let install.php run it for you. Re-running it is safe: tables are only
--- created when missing and sample rows are skipped when they already exist.
+-- created when missing. Doctors are added by an administrator after setup.
 
 SET NAMES utf8mb4;
-
-CREATE TABLE IF NOT EXISTS clinics (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  name VARCHAR(120) NOT NULL,
-  description VARCHAR(255) NOT NULL DEFAULT '',
-  is_active TINYINT(1) NOT NULL DEFAULT 1,
-  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
-  UNIQUE KEY uq_clinic_name (name)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS patients (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -33,8 +26,8 @@ CREATE TABLE IF NOT EXISTS patients (
 
 CREATE TABLE IF NOT EXISTS doctors (
   id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-  clinic_id INT UNSIGNED NOT NULL,
   name VARCHAR(120) NOT NULL,
+  clinic VARCHAR(120) NOT NULL,
   specialty VARCHAR(120) NOT NULL DEFAULT '',
   email VARCHAR(190) NOT NULL,
   phone VARCHAR(20) NOT NULL DEFAULT '',
@@ -47,8 +40,7 @@ CREATE TABLE IF NOT EXISTS doctors (
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_doctor_email (email),
-  KEY idx_doctor_clinic (clinic_id),
-  CONSTRAINT fk_doctor_clinic FOREIGN KEY (clinic_id) REFERENCES clinics (id) ON UPDATE CASCADE
+  KEY idx_doctor_clinic (clinic)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS admins (
@@ -135,29 +127,3 @@ CREATE TABLE IF NOT EXISTS login_attempts (
   PRIMARY KEY (id),
   KEY idx_attempt_ident (identifier, attempted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Sample clinics
-INSERT IGNORE INTO clinics (name, description) VALUES
-  ('General Outpatient', 'Consultations for general illness, check-ups and referrals.'),
-  ('Dental Clinic', 'Dental examinations, cleaning, fillings and extractions.'),
-  ('Eye Clinic', 'Eye examinations, vision tests and prescriptions.'),
-  ('Physiotherapy', 'Assessment and treatment of injuries and mobility problems.'),
-  ('Mental Health and Counselling', 'Confidential counselling and mental health support.'),
-  ('Women''s Health', 'Family planning, antenatal care and gynaecology.');
-
--- Sample doctors. They have no password until one is set in install.php
--- or by an administrator, so they cannot sign in before then.
-INSERT IGNORE INTO doctors (clinic_id, name, specialty, email, work_days, start_time, end_time, slot_minutes)
-  SELECT id, 'Dr. Adaeze Okonkwo', 'General Practitioner', 'a.okonkwo@uhs.test', '1,2,3,4,5', '08:00:00', '16:00:00', 30 FROM clinics WHERE name = 'General Outpatient';
-INSERT IGNORE INTO doctors (clinic_id, name, specialty, email, work_days, start_time, end_time, slot_minutes)
-  SELECT id, 'Dr. Babatunde Alade', 'General Practitioner', 'b.alade@uhs.test', '1,3,5', '09:00:00', '15:00:00', 20 FROM clinics WHERE name = 'General Outpatient';
-INSERT IGNORE INTO doctors (clinic_id, name, specialty, email, work_days, start_time, end_time, slot_minutes)
-  SELECT id, 'Dr. Funmilayo Ogunleye', 'Dental Surgeon', 'f.ogunleye@uhs.test', '2,4', '08:30:00', '14:30:00', 30 FROM clinics WHERE name = 'Dental Clinic';
-INSERT IGNORE INTO doctors (clinic_id, name, specialty, email, work_days, start_time, end_time, slot_minutes)
-  SELECT id, 'Dr. Ibrahim Musa', 'Ophthalmologist', 'i.musa@uhs.test', '1,2,3,4,5', '09:00:00', '15:00:00', 30 FROM clinics WHERE name = 'Eye Clinic';
-INSERT IGNORE INTO doctors (clinic_id, name, specialty, email, work_days, start_time, end_time, slot_minutes)
-  SELECT id, 'Dr. Kemi Adeyemi', 'Physiotherapist', 'k.adeyemi@uhs.test', '1,2,3,4,5', '08:00:00', '14:00:00', 45 FROM clinics WHERE name = 'Physiotherapy';
-INSERT IGNORE INTO doctors (clinic_id, name, specialty, email, work_days, start_time, end_time, slot_minutes)
-  SELECT id, 'Dr. Chinedu Eze', 'Clinical Psychologist', 'c.eze@uhs.test', '1,2,4', '10:00:00', '16:00:00', 60 FROM clinics WHERE name = 'Mental Health and Counselling';
-INSERT IGNORE INTO doctors (clinic_id, name, specialty, email, work_days, start_time, end_time, slot_minutes)
-  SELECT id, 'Dr. Aisha Bello', 'Obstetrician and Gynaecologist', 'a.bello@uhs.test', '2,3,5', '08:00:00', '13:00:00', 30 FROM clinics WHERE name = 'Women''s Health';

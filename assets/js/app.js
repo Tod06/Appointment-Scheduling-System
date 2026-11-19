@@ -116,7 +116,7 @@
     var requestId = 0;
 
     var state = {
-      clinic: data.selected.clinic || 0,
+      clinic: data.selected.clinic || '',
       doctor: data.selected.doctor || 0,
       date: data.selected.date || '',
       time: '',
@@ -127,7 +127,7 @@
     var preDoctor = doctorById(state.doctor);
     if (preDoctor) {
       state.clinic = preDoctor.clinic;
-      clinicInputs.forEach(function (i) { i.checked = +i.value === state.clinic; });
+      clinicInputs.forEach(function (i) { i.checked = i.value === state.clinic; });
     }
 
     function doctorById(id) {
@@ -136,13 +136,13 @@
 
     function renderDoctors() {
       if (!state.clinic) {
-        doctorsBox.innerHTML = placeholder('arrowUp', 'Choose a clinic first.');
+        doctorsBox.innerHTML = placeholder('arrowUp', 'Choose a clinic type first.');
         return;
       }
       var list = data.doctors.filter(function (d) { return d.clinic === state.clinic; });
       if (!list.length) {
         state.doctor = 0;
-        doctorsBox.innerHTML = placeholder('alert', 'No doctors are taking appointments in this clinic right now.');
+        doctorsBox.innerHTML = placeholder('alert', 'No doctors are taking appointments for this clinic type right now.');
         return;
       }
       if (!list.some(function (d) { return d.id === state.doctor; })) {
@@ -266,7 +266,7 @@
     form.addEventListener('change', function (e) {
       var t = e.target;
       if (t.matches('[data-clinic-input]')) {
-        state.clinic = +t.value;
+        state.clinic = t.value;
         renderDoctors();
         updateDates();
         loadSlots();

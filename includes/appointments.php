@@ -74,17 +74,21 @@ function slots_for(array $doctor, string $date, int $exceptAppointmentId = 0): a
     return $slots;
 }
 
+/** Clinic types in use, taken from the clinic field of active doctors (Table 3.2). */
+function clinic_types(bool $activeOnly = true): array
+{
+    return array_column(q_all('SELECT DISTINCT clinic FROM doctors' . ($activeOnly ? ' WHERE is_active = 1' : '') . ' ORDER BY clinic'), 'clinic');
+}
+
 /* ---------- Loading appointments ---------- */
 
 const APPOINTMENT_SELECT = '
     SELECT a.*,
            p.name AS patient_name, p.email AS patient_email, p.phone AS patient_phone, p.matric_no,
-           d.name AS doctor_name, d.specialty, d.slot_minutes, d.clinic_id,
-           c.name AS clinic_name
+           d.name AS doctor_name, d.specialty, d.slot_minutes, d.clinic AS clinic_name
     FROM appointments a
     JOIN patients p ON p.id = a.patient_id
-    JOIN doctors d ON d.id = a.doctor_id
-    JOIN clinics c ON c.id = d.clinic_id';
+    JOIN doctors d ON d.id = a.doctor_id';
 
 function find_appointment(int $id): ?array
 {
@@ -254,8 +258,7 @@ function book_appointment(array $patient, int $doctorId, string $date, string $t
     $pdo->beginTransaction();
     try {
         $doctor = q_one(
-            'SELECT d.* FROM doctors d JOIN clinics c ON c.id = d.clinic_id
-             WHERE d.id = ? AND d.is_active = 1 AND c.is_active = 1 FOR UPDATE',
+            'SELECT * FROM doctors WHERE id = ? AND is_active = 1 FOR UPDATE',
             [$doctorId]
         );
         if (!$doctor) {
@@ -336,8 +339,8 @@ function book_appointment(array $patient, int $doctorId, string $date, string $t
 function send_due_reminders(int $patientId): void
 {
     $due = q_all(
-        "SELECT a.id, a.appointment_date, a.appointment_time, d.name AS doctor_name, c.name AS clinic_name
-         FROM appointments a JOIN doctors d ON d.id = a.doctor_id JOIN clinics c ON c.id = d.clinic_id
+        "SELECT a.id, a.appointment_date, a.appointment_time, d.name AS doctor_name, d.clinic AS clinic_name
+         FROM appointments a JOIN doctors d ON d.id = a.doctor_id
          WHERE a.patient_id = ? AND a.status = 'Approved' AND a.reminder_sent = 0
            AND TIMESTAMP(a.appointment_date, a.appointment_time) BETWEEN NOW() AND (NOW() + INTERVAL 24 HOUR)",
         [$patientId]

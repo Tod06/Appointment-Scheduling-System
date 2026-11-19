@@ -50,7 +50,7 @@ if (is_post()) {
         );
         $id = (int) db()->lastInsertId();
         login_user('patient', ['id' => $id]);
-        notify('patient', $id, 'Welcome to UHS Appointments', 'You can now book appointments with any clinic. Bring your ID card to every visit.', 'patient/book.php');
+        notify('patient', $id, 'Welcome to UHS Appointments', 'You can now book appointments at the Health Service. Bring your ID card to every visit.', 'patient/book.php');
         flash('success', 'Your account is ready. Book your first appointment below.');
         redirect('patient/book.php');
     }

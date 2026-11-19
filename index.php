@@ -2,13 +2,8 @@
 require __DIR__ . '/includes/bootstrap.php';
 
 $user = current_user();
-$clinics = q_all(
-    'SELECT c.name, c.description, COUNT(d.id) AS doctors,
-            MIN(d.start_time) AS opens, MAX(d.end_time) AS closes
-     FROM clinics c LEFT JOIN doctors d ON d.clinic_id = c.id AND d.is_active = 1
-     WHERE c.is_active = 1 GROUP BY c.id ORDER BY c.name'
-);
-$doctorCount = array_sum(array_map(fn ($c) => (int) $c['doctors'], $clinics));
+$doctors = q_all('SELECT name, clinic, specialty, work_days, start_time, end_time FROM doctors WHERE is_active = 1 ORDER BY clinic, name');
+$sample = $doctors[0] ?? null;
 
 // Sample week for the preview card, starting from the next weekday.
 $previewDays = [];
@@ -28,7 +23,7 @@ site_header($user);
       <div>
         <span class="hero-kicker"><span class="pill">New</span> Online booking for students and staff</span>
         <h1>See a doctor at the Health Service <em>without the queue.</em></h1>
-        <p class="hero-lead">Choose a clinic, pick a doctor and a free time that suits you, and follow your request until it is confirmed. No early-morning lines, no lost cards.</p>
+        <p class="hero-lead">Choose the clinic type, pick a doctor and a free time that suits you, and follow your request until it is confirmed. No early-morning lines, no lost cards.</p>
         <div class="hero-actions">
           <?php if ($user): ?>
             <a class="btn btn-primary btn-lg" href="<?= e(url(home_for($user['role']))) ?>">Go to your dashboard <?= icon('arrow-right', 17) ?></a>
@@ -38,8 +33,8 @@ site_header($user);
           <?php endif; ?>
         </div>
         <div class="hero-facts">
-          <span><?= icon('building', 16) ?> <?= e(plural(count($clinics), 'clinic')) ?></span>
-          <span><?= icon('stethoscope', 16) ?> <?= e(plural($doctorCount, 'doctor')) ?> taking bookings</span>
+          <span><?= icon('stethoscope', 16) ?> <?= e(plural(count($doctors), 'doctor')) ?> taking bookings</span>
+          <span><?= icon('calendar-check', 16) ?> Cancel or reschedule online</span>
           <span><?= icon('shield-check', 16) ?> Your details stay private</span>
         </div>
       </div>
@@ -48,10 +43,10 @@ site_header($user);
         <div class="preview-card">
           <div class="preview-top">
             <div class="row">
-              <span class="avatar">AO</span>
+              <span class="avatar"><?= $sample ? e(initials($sample['name'])) : icon('stethoscope', 15) ?></span>
               <div>
-                <div style="font-weight:500">Dr. Adaeze Okonkwo</div>
-                <div class="muted" style="font-size:12.5px">General Outpatient</div>
+                <div style="font-weight:500"><?= e($sample['name'] ?? 'Your doctor') ?></div>
+                <div class="muted" style="font-size:12.5px"><?= e($sample['clinic'] ?? 'University Health Service') ?></div>
               </div>
             </div>
             <span class="badge badge-approved"><span class="badge-dot"></span>Available</span>
@@ -70,7 +65,7 @@ site_header($user);
             <?= icon('calendar-clock', 18, 'muted') ?>
             <div style="flex:1">
               <div style="font-weight:500;font-size:13px"><?= e(date('l, j F', $previewDays[1])) ?> at 10:30 AM</div>
-              <div class="muted" style="font-size:12px">Routine check-up</div>
+              <div class="muted" style="font-size:12px">Reason for visit</div>
             </div>
             <span class="btn btn-primary btn-sm">Confirm</span>
           </div>
@@ -95,8 +90,8 @@ site_header($user);
       <div class="how">
         <div class="how-step">
           <div class="how-num">01</div>
-          <h3>Choose a clinic and doctor</h3>
-          <p>Browse the clinics and the doctors who consult there, with the days and hours each one is available.</p>
+          <h3>Choose a clinic type and doctor</h3>
+          <p>See each doctor's clinic, specialty and the days and hours they consult before you book.</p>
         </div>
         <div class="how-step">
           <div class="how-num">02</div>
@@ -112,27 +107,26 @@ site_header($user);
     </div>
   </section>
 
-  <section class="section" id="clinics">
+  <section class="section" id="doctors">
     <div class="container">
       <div class="section-head">
-        <h2>Clinics taking appointments.</h2>
-        <p>Consultation hours vary by doctor. You will see each doctor's exact times when you book.</p>
+        <h2>Doctors taking appointments.</h2>
+        <p>Consultation days and hours for each doctor. You will see the exact free times when you book.</p>
       </div>
-      <?php if ($clinics): ?>
+      <?php if ($doctors): ?>
       <div class="clinic-grid">
-        <?php foreach ($clinics as $c): ?>
+        <?php foreach ($doctors as $d): ?>
           <div class="clinic">
-            <h3><?= e($c['name']) ?></h3>
-            <p><?= e($c['description']) ?></p>
+            <h3><?= e($d['name']) ?></h3>
+            <p><?= e($d['clinic']) ?><?= $d['specialty'] !== '' ? ' · ' . e($d['specialty']) : '' ?></p>
             <div class="meta">
-              <?= icon('stethoscope', 14) ?> <?= e(plural((int) $c['doctors'], 'doctor')) ?>
-              <?php if ($c['opens']): ?><span>·</span> <?= e(fmt_time($c['opens'])) ?> to <?= e(fmt_time($c['closes'])) ?><?php endif; ?>
+              <?= icon('clock', 14) ?> <?= e(describe_work_days($d['work_days'])) ?>, <?= e(fmt_time($d['start_time'])) ?> to <?= e(fmt_time($d['end_time'])) ?>
             </div>
           </div>
         <?php endforeach; ?>
       </div>
       <?php else: ?>
-        <div class="card"><?= empty_state('building', 'No clinics yet', 'An administrator needs to add clinics before bookings open.') ?></div>
+        <div class="card"><?= empty_state('stethoscope', 'No doctors yet', 'Bookings open once the administrator adds doctors.') ?></div>
       <?php endif; ?>
     </div>
   </section>
@@ -165,7 +159,7 @@ site_header($user);
           <div class="icon-box"><?= icon('shield-check', 19) ?></div>
           <h3>Administrators</h3>
           <ul>
-            <li><?= icon('check', 15) ?> Manage patients, doctors and clinics</li>
+            <li><?= icon('check', 15) ?> Manage patients, doctors and appointments</li>
             <li><?= icon('check', 15) ?> Oversee every appointment</li>
             <li><?= icon('check', 15) ?> Export reports and review the audit log</li>
           </ul>

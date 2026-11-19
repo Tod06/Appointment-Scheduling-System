@@ -56,7 +56,7 @@ if (is_post()) {
     }
 }
 
-$clinic = $user['role'] === 'doctor' ? q_val('SELECT name FROM clinics WHERE id = ?', [$user['clinic_id']]) : null;
+$clinic = $user['clinic'] ?? null;
 
 app_start($user, 'Account', [
     'active' => 'account.php',

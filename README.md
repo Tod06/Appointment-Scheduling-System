@@ -4,25 +4,28 @@ A web-based appointment scheduling system for the University Health Service (UHS
 Group 29, Department of Computer Science.
 
 Patients register, choose a clinic, doctor, date and free time, and follow their request until it is confirmed.
-Doctors review requests and manage their schedule. Administrators manage patients, doctors and clinics, oversee
-every appointment, and export reports.
+Doctors review requests and manage their schedule. Administrators manage patients, doctors and appointments,
+and export reports.
 
 ## Features
 
 | Requirement | Where it lives |
 | --- | --- |
 | FR1 Register and sign in | `register.php`, `login.php` (patients sign in with email or matric number) |
-| FR2 View clinic and doctor schedules | `index.php`, `patient/book.php` (each doctor's days, hours and free slots) |
+| FR2 View clinic and doctor schedules | `index.php`, `patient/book.php` (each doctor's clinic, days, hours and free slots) |
 | FR3 Request an appointment | `patient/book.php`, checked and locked in `includes/appointments.php` |
 | FR4 View, cancel or reschedule | `patient/appointments.php`, `appointment.php`, `patient/book.php?reschedule=` |
 | FR5 Doctor schedule | `doctor/dashboard.php`, `doctor/calendar.php`, `doctor/appointments.php` |
 | FR6 Approve or update status | `appointment.php` and the quick actions on `doctor/dashboard.php` |
-| FR7 Manage patients, doctors, appointments | `admin/patients.php`, `admin/doctors.php`, `admin/clinics.php`, `admin/appointments.php` |
+| FR7 Manage patients, doctors, appointments | `admin/patients.php`, `admin/doctors.php`, `admin/appointments.php` |
 | FR8 Summaries and reports | `admin/dashboard.php`, `admin/reports.php` (print and CSV export) |
 | FR9 Notifications and reminders | `notifications.php`; reminders are created for approved visits within 24 hours |
 
 Also included: week calendar views, doctor availability settings, a full status history for every appointment,
 an administrator audit log, and sign-in throttling.
+
+**Database entities (Table 3.2):** Patient, Doctor (including its clinic and specialty), Appointment and Admin.
+The clinic type a patient chooses when booking comes from the clinic field of the doctors the administrator adds.
 
 **Appointment statuses:** Pending, Approved, Rescheduled, Completed, Cancelled.
 
@@ -43,7 +46,7 @@ an administrator audit log, and sign-in throttling.
 ├── api/slots.php          Free time slots as JSON for the booking page
 ├── includes/              Shared PHP: database, sign-in, rules, layout
 ├── assets/                CSS and JavaScript
-├── database/schema.sql    Tables and sample clinics and doctors
+├── database/schema.sql    Database tables
 └── install.php            One-time setup
 ```
 
@@ -54,8 +57,9 @@ an administrator audit log, and sign-in throttling.
 3. Open http://localhost/phpmyadmin, click **New**, and create a database called `uhs_appointments`.
 4. In the project folder, copy `config.sample.php` to `config.php`. The defaults already match XAMPP.
 5. Open http://localhost/Appointment-Scheduling-System/install.php and create the administrator account.
-   You can also set one password for the seven sample doctors so you can sign in as a doctor.
-6. Sign in at http://localhost/Appointment-Scheduling-System/login.php.
+6. Sign in at http://localhost/Appointment-Scheduling-System/login.php as the administrator and add the doctors
+   under **Doctors**, with each one's clinic, specialty, consulting days and hours, and a password.
+   Patients can book once at least one doctor is added.
 
 ## Deploy to InfinityFree
 
@@ -65,7 +69,7 @@ an administrator audit log, and sign-in throttling.
    Set `'base_url' => ''` because the site runs from the root of `htdocs`.
 3. Upload the project files into the `htdocs` folder using the InfinityFree file manager or an FTP client
    such as FileZilla. Upload `config.php` too. It is not on GitHub, by design.
-4. Visit `https://your-site.infinityfreeapp.com/install.php` and create the administrator account.
+4. Visit `https://your-site.infinityfreeapp.com/install.php`, create the administrator account, then add the doctors.
    If setup cannot create the tables, import `database/schema.sql` in phpMyAdmin first, then run setup again.
 5. Delete `install.php` from the server once you can sign in.
 

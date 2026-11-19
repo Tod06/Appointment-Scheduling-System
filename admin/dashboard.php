@@ -13,11 +13,10 @@ $newPatients = (int) q_val('SELECT COUNT(*) FROM patients WHERE created_at >= (N
 $weekStart = week_start($today);
 $weekEnd = date('Y-m-d', strtotime("$weekStart +6 days"));
 $clinicLoad = q_all(
-    "SELECT c.name, COUNT(a.id) AS n
-     FROM clinics c
-     LEFT JOIN doctors d ON d.clinic_id = c.id
+    "SELECT d.clinic AS name, COUNT(a.id) AS n
+     FROM doctors d
      LEFT JOIN appointments a ON a.doctor_id = d.id AND a.appointment_date BETWEEN ? AND ? AND a.status <> 'Cancelled'
-     WHERE c.is_active = 1 GROUP BY c.id ORDER BY n DESC, c.name",
+     WHERE d.is_active = 1 GROUP BY d.clinic ORDER BY n DESC, d.clinic",
     [$weekStart, $weekEnd]
 );
 $maxLoad = max(1, ...array_map(fn ($r) => (int) $r['n'], $clinicLoad ?: [['n' => 1]]));
@@ -37,7 +36,7 @@ $activity = q_all(
 app_start($user, 'Overview', [
     'active' => 'admin/dashboard.php',
     'heading' => 'Health Service overview',
-    'subtitle' => date('l, j F Y') . '. A summary of appointment activity across all clinics.',
+    'subtitle' => date('l, j F Y') . '. A summary of appointment activity at the Health Service.',
     'actions' => '<a class="btn btn-secondary" href="' . e(url('admin/reports.php')) . '">' . icon('bar-chart', 16) . ' Reports</a>'
         . '<a class="btn btn-primary" href="' . e(url('admin/calendar.php')) . '">' . icon('calendar', 16) . ' Calendar</a>',
 ]);
@@ -116,7 +115,7 @@ app_start($user, 'Overview', [
             <?php endforeach; ?>
           </div>
         <?php else: ?>
-          <p class="muted">No clinics yet.</p>
+          <p class="muted">No doctors yet. <a class="link-accent" href="<?= e(url('admin/doctors.php?id=new')) ?>">Add a doctor</a></p>
         <?php endif; ?>
       </div>
     </section>

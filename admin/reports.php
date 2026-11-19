@@ -8,13 +8,13 @@ $to = valid_date(query('to')) ? query('to') : date('Y-m-t');
 if ($to < $from) {
     [$from, $to] = [$to, $from];
 }
-$clinicId = to_int(query('clinic'));
+$clinic = query('clinic');
 $doctorId = to_int(query('doctor'));
 $status = in_array(query('status'), STATUSES, true) ? query('status') : '';
 
 $where = ['a.appointment_date BETWEEN ? AND ?'];
 $params = [$from, $to];
-if ($clinicId) { $where[] = 'd.clinic_id = ?'; $params[] = $clinicId; }
+if ($clinic !== '') { $where[] = 'd.clinic = ?'; $params[] = $clinic; }
 if ($doctorId) { $where[] = 'a.doctor_id = ?'; $params[] = $doctorId; }
 if ($status !== '') { $where[] = 'a.status = ?'; $params[] = $status; }
 $whereSql = implode(' AND ', $where);
@@ -49,16 +49,16 @@ $completionRate = $completionBase ? round($counts['Completed'] / $completionBase
 $uniquePatients = (int) q_val("SELECT COUNT(DISTINCT a.patient_id) FROM appointments a JOIN doctors d ON d.id = a.doctor_id WHERE $whereSql", $params);
 
 $byClinic = q_all(
-    "SELECT c.name, COUNT(*) AS n, SUM(a.status = 'Completed') AS done, SUM(a.status = 'Cancelled') AS cancelled
-     FROM appointments a JOIN doctors d ON d.id = a.doctor_id JOIN clinics c ON c.id = d.clinic_id
-     WHERE $whereSql GROUP BY c.id ORDER BY n DESC",
+    "SELECT d.clinic AS name, COUNT(*) AS n, SUM(a.status = 'Completed') AS done, SUM(a.status = 'Cancelled') AS cancelled
+     FROM appointments a JOIN doctors d ON d.id = a.doctor_id
+     WHERE $whereSql GROUP BY d.clinic ORDER BY n DESC",
     $params
 );
 $byDoctor = q_all(
-    "SELECT d.name, c.name AS clinic_name, COUNT(*) AS n,
+    "SELECT d.name, d.clinic AS clinic_name, COUNT(*) AS n,
             SUM(a.status = 'Completed') AS done, SUM(a.status = 'Cancelled') AS cancelled,
             SUM(a.status IN ('Pending','Rescheduled')) AS pending
-     FROM appointments a JOIN doctors d ON d.id = a.doctor_id JOIN clinics c ON c.id = d.clinic_id
+     FROM appointments a JOIN doctors d ON d.id = a.doctor_id
      WHERE $whereSql GROUP BY d.id ORDER BY n DESC",
     $params
 );
@@ -70,7 +70,7 @@ foreach (q_all("SELECT DAYOFWEEK(a.appointment_date) AS dow, COUNT(*) AS n FROM 
 $maxClinic = max(1, ...array_map(fn ($r) => (int) $r['n'], $byClinic ?: [['n' => 1]]));
 $maxWeekday = max(1, ...array_values($byWeekday));
 
-$clinics = q_all('SELECT id, name FROM clinics ORDER BY name');
+$clinics = clinic_types(false);
 $doctors = q_all('SELECT id, name FROM doctors ORDER BY name');
 $period = date('j M Y', strtotime($from)) . ' to ' . date('j M Y', strtotime($to));
 
@@ -95,7 +95,7 @@ app_start($user, 'Reports', [
         <label class="label" for="clinic">Clinic</label>
         <select class="select" id="clinic" name="clinic">
           <option value="">All clinics</option>
-          <?php foreach ($clinics as $c): ?><option value="<?= (int) $c['id'] ?>" <?= $clinicId === (int) $c['id'] ? 'selected' : '' ?>><?= e($c['name']) ?></option><?php endforeach; ?>
+          <?php foreach ($clinics as $c): ?><option value="<?= e($c) ?>" <?= $clinic === $c ? 'selected' : '' ?>><?= e($c) ?></option><?php endforeach; ?>
         </select>
       </div>
       <div class="field">
