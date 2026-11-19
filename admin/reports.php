@@ -32,7 +32,7 @@ if (query('export') === 'csv') {
     fputcsv($out, ['Reference', 'Date', 'Time', 'Status', 'Patient', 'Matric number', 'Email', 'Phone', 'Clinic', 'Doctor', 'Reason', 'Booked on']);
     foreach ($rows as $r) {
         fputcsv($out, array_map($cell, [
-            str_pad((string) $r['id'], 5, '0', STR_PAD_LEFT), $r['appointment_date'], substr($r['appointment_time'], 0, 5), $r['status'],
+            str_pad((string) $r['appointment_id'], 5, '0', STR_PAD_LEFT), $r['appointment_date'], substr($r['appointment_time'], 0, 5), $r['status'],
             $r['patient_name'], $r['matric_no'] ?? '', $r['patient_email'], $r['patient_phone'], $r['clinic_name'], $r['doctor_name'],
             $r['reason'], $r['created_at'],
         ]));
@@ -46,11 +46,11 @@ $counts = status_counts($whereSql, $params);
 $total = array_sum($counts);
 $completionBase = $counts['Completed'] + $counts['Cancelled'];
 $completionRate = $completionBase ? round($counts['Completed'] / $completionBase * 100) : 0;
-$uniquePatients = (int) q_val("SELECT COUNT(DISTINCT a.patient_id) FROM appointments a JOIN doctors d ON d.id = a.doctor_id WHERE $whereSql", $params);
+$uniquePatients = (int) q_val("SELECT COUNT(DISTINCT a.patient_id) FROM appointments a JOIN doctors d ON d.doctor_id = a.doctor_id WHERE $whereSql", $params);
 
 $byClinic = q_all(
     "SELECT d.clinic AS name, COUNT(*) AS n, SUM(a.status = 'Completed') AS done, SUM(a.status = 'Cancelled') AS cancelled
-     FROM appointments a JOIN doctors d ON d.id = a.doctor_id
+     FROM appointments a JOIN doctors d ON d.doctor_id = a.doctor_id
      WHERE $whereSql GROUP BY d.clinic ORDER BY n DESC",
     $params
 );
@@ -58,12 +58,12 @@ $byDoctor = q_all(
     "SELECT d.name, d.clinic AS clinic_name, COUNT(*) AS n,
             SUM(a.status = 'Completed') AS done, SUM(a.status = 'Cancelled') AS cancelled,
             SUM(a.status IN ('Pending','Rescheduled')) AS pending
-     FROM appointments a JOIN doctors d ON d.id = a.doctor_id
-     WHERE $whereSql GROUP BY d.id ORDER BY n DESC",
+     FROM appointments a JOIN doctors d ON d.doctor_id = a.doctor_id
+     WHERE $whereSql GROUP BY d.doctor_id ORDER BY n DESC",
     $params
 );
 $byWeekday = array_fill(1, 7, 0);
-foreach (q_all("SELECT DAYOFWEEK(a.appointment_date) AS dow, COUNT(*) AS n FROM appointments a JOIN doctors d ON d.id = a.doctor_id WHERE $whereSql GROUP BY dow", $params) as $r) {
+foreach (q_all("SELECT DAYOFWEEK(a.appointment_date) AS dow, COUNT(*) AS n FROM appointments a JOIN doctors d ON d.doctor_id = a.doctor_id WHERE $whereSql GROUP BY dow", $params) as $r) {
     $iso = ((int) $r['dow'] + 5) % 7 + 1; // MySQL: 1 = Sunday; convert to 1 = Monday
     $byWeekday[$iso] = (int) $r['n'];
 }
@@ -71,7 +71,7 @@ $maxClinic = max(1, ...array_map(fn ($r) => (int) $r['n'], $byClinic ?: [['n' =>
 $maxWeekday = max(1, ...array_values($byWeekday));
 
 $clinics = clinic_types(false);
-$doctors = q_all('SELECT id, name FROM doctors ORDER BY name');
+$doctors = q_all('SELECT doctor_id, name FROM doctors ORDER BY name');
 $period = date('j M Y', strtotime($from)) . ' to ' . date('j M Y', strtotime($to));
 
 app_start($user, 'Reports', [
@@ -102,7 +102,7 @@ app_start($user, 'Reports', [
         <label class="label" for="doctor">Doctor</label>
         <select class="select" id="doctor" name="doctor">
           <option value="">All doctors</option>
-          <?php foreach ($doctors as $d): ?><option value="<?= (int) $d['id'] ?>" <?= $doctorId === (int) $d['id'] ? 'selected' : '' ?>><?= e($d['name']) ?></option><?php endforeach; ?>
+          <?php foreach ($doctors as $d): ?><option value="<?= (int) $d['doctor_id'] ?>" <?= $doctorId === (int) $d['doctor_id'] ? 'selected' : '' ?>><?= e($d['name']) ?></option><?php endforeach; ?>
         </select>
       </div>
       <div class="field">

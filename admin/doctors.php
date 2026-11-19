@@ -10,7 +10,7 @@ $errors = [];
 
 /* ---------- Add or edit one doctor ---------- */
 if ($isNew || $id) {
-    $doctor = $id ? q_one('SELECT * FROM doctors WHERE id = ?', [$id]) : null;
+    $doctor = $id ? q_one('SELECT * FROM doctors WHERE doctor_id = ?', [$id]) : null;
     if ($id && !$doctor) {
         render_error_page(404, 'Doctor not found', 'This doctor record does not exist.');
     }
@@ -48,7 +48,7 @@ if ($isNew || $id) {
         if (!valid_email($form['email'])) $errors[] = 'Enter a valid email address.';
         if ($form['phone'] !== '' && !valid_phone($form['phone'])) $errors[] = 'Enter a valid phone number or leave it blank.';
         if (mb_strlen($form['clinic']) < 2 || mb_strlen($form['clinic']) > 120) $errors[] = 'Enter the clinic the doctor consults in.';
-        if (!$errors && q_val('SELECT COUNT(*) FROM doctors WHERE email = ? AND id <> ?', [$form['email'], $id])) $errors[] = 'Another doctor already uses this email.';
+        if (!$errors && q_val('SELECT COUNT(*) FROM doctors WHERE email = ? AND doctor_id <> ?', [$form['email'], $id])) $errors[] = 'Another doctor already uses this email.';
         if ($isNew && $password === '') {
             $errors[] = 'Set a password so the doctor can sign in.';
         } elseif ($password !== '' && ($problem = password_problem($password))) {
@@ -71,11 +71,11 @@ if ($isNew || $id) {
                 flash('success', $form['name'] . ' has been added and can now sign in.');
             } else {
                 q(
-                    'UPDATE doctors SET clinic = ?, name = ?, specialty = ?, email = ?, phone = ?, work_days = ?, start_time = ?, end_time = ?, slot_minutes = ?, is_active = ? WHERE id = ?',
+                    'UPDATE doctors SET clinic = ?, name = ?, specialty = ?, email = ?, phone = ?, work_days = ?, start_time = ?, end_time = ?, slot_minutes = ?, is_active = ? WHERE doctor_id = ?',
                     array_merge($values, [$id])
                 );
                 if ($password !== '') {
-                    q('UPDATE doctors SET password_hash = ? WHERE id = ?', [password_hash($password, PASSWORD_DEFAULT), $id]);
+                    q('UPDATE doctors SET password_hash = ? WHERE doctor_id = ?', [password_hash($password, PASSWORD_DEFAULT), $id]);
                 }
                 audit((int) $user['id'], 'doctor.update', 'doctor', $id, 'Updated ' . $form['name'] . ($password !== '' ? ' (password reset)' : ''));
                 flash('success', 'Doctor details saved.');
@@ -146,8 +146,8 @@ $rows = q_all(
     "SELECT d.*,
             SUM(a.status IN ('Pending','Approved','Rescheduled') AND a.appointment_date >= CURDATE()) AS upcoming
      FROM doctors d
-     LEFT JOIN appointments a ON a.doctor_id = d.id
-     $where GROUP BY d.id ORDER BY d.is_active DESC, d.clinic, d.name",
+     LEFT JOIN appointments a ON a.doctor_id = d.doctor_id
+     $where GROUP BY d.doctor_id ORDER BY d.is_active DESC, d.clinic, d.name",
     $clinicFilter !== '' ? [$clinicFilter] : []
 );
 
@@ -191,7 +191,7 @@ app_start($user, 'Doctors', [
                 <?php elseif (!$d['password_hash']): ?><span class="badge badge-pending"><span class="badge-dot"></span>No password</span>
                 <?php else: ?><span class="badge badge-approved"><span class="badge-dot"></span>Active</span><?php endif; ?>
               </td>
-              <td class="actions"><a class="btn btn-secondary btn-sm" href="<?= e(url('admin/doctors.php?id=' . $d['id'])) ?>"><?= icon('pencil', 14) ?> Edit</a></td>
+              <td class="actions"><a class="btn btn-secondary btn-sm" href="<?= e(url('admin/doctors.php?id=' . $d['doctor_id'])) ?>"><?= icon('pencil', 14) ?> Edit</a></td>
             </tr>
           <?php endforeach; ?>
         </tbody>

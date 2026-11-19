@@ -25,7 +25,7 @@ if ($search !== '') {
 }
 $whereSql = implode(' AND ', $where);
 
-$total = (int) q_val("SELECT COUNT(*) FROM appointments a JOIN patients p ON p.id = a.patient_id WHERE $whereSql", $params);
+$total = (int) q_val("SELECT COUNT(*) FROM appointments a JOIN patients p ON p.patient_id = a.patient_id WHERE $whereSql", $params);
 $p = paginate($total, 20);
 $rows = q_all(
     APPOINTMENT_SELECT . " WHERE $whereSql ORDER BY a.appointment_date DESC, a.appointment_time DESC LIMIT {$p['per_page']} OFFSET {$p['offset']}",

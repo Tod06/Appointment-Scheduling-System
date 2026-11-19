@@ -24,15 +24,15 @@ if (is_post()) {
         flash('success', $messages[$to] ?? 'Appointment updated.');
     }
     $back = safe_local_path(post('return'));
-    redirect($back ?? 'appointment.php?id=' . $appt['id']);
+    redirect($back ?? 'appointment.php?id=' . $appt['appointment_id']);
 }
 
-$history = q_all('SELECT * FROM appointment_history WHERE appointment_id = ? ORDER BY created_at ASC, id ASC', [$appt['id']]);
+$history = q_all('SELECT * FROM appointment_history WHERE appointment_id = ? ORDER BY created_at ASC, id ASC', [$appt['appointment_id']]);
 $actorNames = [];
 foreach ($history as $h) {
     $key = $h['actor_role'] . ':' . $h['actor_id'];
     if (!isset($actorNames[$key]) && in_array($h['actor_role'], ROLES, true)) {
-        $actorNames[$key] = (string) q_val('SELECT name FROM ' . user_table($h['actor_role']) . ' WHERE id = ?', [$h['actor_id']]);
+        $actorNames[$key] = (string) q_val('SELECT name FROM ' . user_table($h['actor_role']) . ' WHERE ' . user_pk($h['actor_role']) . ' = ?', [$h['actor_id']]);
     }
 }
 
@@ -47,13 +47,13 @@ $backLink = match ($user['role']) {
 
 $actions = '';
 if ($canReschedule) {
-    $actions .= '<a class="btn btn-secondary" href="' . e(url('patient/book.php?reschedule=' . $appt['id'])) . '">' . icon('refresh', 16) . ' Reschedule</a>';
+    $actions .= '<a class="btn btn-secondary" href="' . e(url('patient/book.php?reschedule=' . $appt['appointment_id'])) . '">' . icon('refresh', 16) . ' Reschedule</a>';
 }
 
 app_start($user, 'Appointment', [
     'active' => '',
     'heading' => $user['role'] === 'patient' ? $appt['clinic_name'] : $appt['patient_name'],
-    'subtitle' => fmt_date($appt['appointment_date']) . ' at ' . fmt_time($appt['appointment_time']) . ' · Reference #' . str_pad((string) $appt['id'], 5, '0', STR_PAD_LEFT),
+    'subtitle' => fmt_date($appt['appointment_date']) . ' at ' . fmt_time($appt['appointment_time']) . ' · Reference #' . str_pad((string) $appt['appointment_id'], 5, '0', STR_PAD_LEFT),
     'back' => $backLink,
     'actions' => $actions,
 ]);
@@ -121,7 +121,7 @@ app_start($user, 'Appointment', [
         </div>
         <form class="card-body form-grid" method="post">
           <?= csrf_field() ?>
-          <input type="hidden" name="id" value="<?= (int) $appt['id'] ?>">
+          <input type="hidden" name="id" value="<?= (int) $appt['appointment_id'] ?>">
           <div class="field">
             <label class="label" for="note"><?= $user['role'] === 'patient' ? 'Reason' : 'Note to patient' ?> <span class="optional">Optional</span></label>
             <textarea class="textarea" id="note" name="note" maxlength="500" placeholder="<?= $user['role'] === 'patient' ? 'Let the clinic know why' : 'For example, bring previous test results' ?>"></textarea>

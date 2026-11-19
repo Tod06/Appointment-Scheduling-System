@@ -75,13 +75,13 @@ app_start($user, 'Today', [
             <li class="list-item">
               <span class="time-chip"><?= e(fmt_time($a['appointment_time'])) ?></span>
               <div class="list-main">
-                <a class="list-title" href="<?= e(url('appointment.php?id=' . $a['id'])) ?>" style="display:block"><?= e($a['patient_name']) ?></a>
+                <a class="list-title" href="<?= e(url('appointment.php?id=' . $a['appointment_id'])) ?>" style="display:block"><?= e($a['patient_name']) ?></a>
                 <div class="list-sub"><?= e($a['reason'] ?: 'No reason given') ?></div>
               </div>
               <?php if ($a['status'] === 'Approved' && in_array('Completed', allowed_transitions($user, $a), true)): ?>
                 <form method="post" action="<?= e(url('appointment.php')) ?>">
                   <?= csrf_field() ?>
-                  <input type="hidden" name="id" value="<?= (int) $a['id'] ?>">
+                  <input type="hidden" name="id" value="<?= (int) $a['appointment_id'] ?>">
                   <input type="hidden" name="return" value="<?= e($returnTo) ?>">
                   <button class="btn btn-secondary btn-sm" type="submit" name="status" value="Completed"><?= icon('check', 14) ?> Done</button>
                 </form>
@@ -109,12 +109,12 @@ app_start($user, 'Today', [
             <li class="list-item">
               <?= date_chip($a['appointment_date']) ?>
               <div class="list-main">
-                <a class="list-title" href="<?= e(url('appointment.php?id=' . $a['id'])) ?>" style="display:block"><?= e($a['patient_name']) ?></a>
+                <a class="list-title" href="<?= e(url('appointment.php?id=' . $a['appointment_id'])) ?>" style="display:block"><?= e($a['patient_name']) ?></a>
                 <div class="list-sub"><?= e(fmt_time($a['appointment_time'])) ?><?= $a['status'] === 'Rescheduled' ? ' · Rescheduled' : '' ?> · <?= e($a['reason'] ?: 'No reason given') ?></div>
               </div>
               <form method="post" action="<?= e(url('appointment.php')) ?>" class="row" style="gap:6px">
                 <?= csrf_field() ?>
-                <input type="hidden" name="id" value="<?= (int) $a['id'] ?>">
+                <input type="hidden" name="id" value="<?= (int) $a['appointment_id'] ?>">
                 <input type="hidden" name="return" value="<?= e($returnTo) ?>">
                 <button class="btn btn-ghost btn-sm btn-icon" type="submit" name="status" value="Cancelled" title="Decline" aria-label="Decline request from <?= e($a['patient_name']) ?>" data-confirm="Decline this request? The patient will be notified."><?= icon('x', 15) ?></button>
                 <button class="btn btn-primary btn-sm" type="submit" name="status" value="Approved"><?= icon('check', 14) ?> Approve</button>

@@ -56,9 +56,9 @@ app_start($user, 'Overview', [
           <?php endif; ?>
         </div>
         <div class="next-actions row wrap">
-          <a class="btn btn-secondary" href="<?= e(url('appointment.php?id=' . $next['id'])) ?>">View details</a>
+          <a class="btn btn-secondary" href="<?= e(url('appointment.php?id=' . $next['appointment_id'])) ?>">View details</a>
           <?php if (can_patient_change($next)): ?>
-            <a class="btn btn-ghost" href="<?= e(url('patient/book.php?reschedule=' . $next['id'])) ?>"><?= icon('refresh', 15) ?> Reschedule</a>
+            <a class="btn btn-ghost" href="<?= e(url('patient/book.php?reschedule=' . $next['appointment_id'])) ?>"><?= icon('refresh', 15) ?> Reschedule</a>
           <?php endif; ?>
         </div>
       </div>

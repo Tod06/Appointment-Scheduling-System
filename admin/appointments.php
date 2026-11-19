@@ -25,7 +25,7 @@ if ($search !== '') {
 $whereSql = implode(' AND ', $where);
 
 $total = (int) q_val(
-    "SELECT COUNT(*) FROM appointments a JOIN patients p ON p.id = a.patient_id JOIN doctors d ON d.id = a.doctor_id WHERE $whereSql",
+    "SELECT COUNT(*) FROM appointments a JOIN patients p ON p.patient_id = a.patient_id JOIN doctors d ON d.doctor_id = a.doctor_id WHERE $whereSql",
     $params
 );
 $p = paginate($total, 25);
@@ -35,7 +35,7 @@ $rows = q_all(
 );
 
 $clinics = clinic_types(false);
-$doctors = q_all('SELECT id, name FROM doctors ORDER BY name');
+$doctors = q_all('SELECT doctor_id, name FROM doctors ORDER BY name');
 $filtered = $status || $clinic !== '' || $doctorId || $from || $to || $search;
 
 app_start($user, 'Appointments', [
@@ -68,7 +68,7 @@ app_start($user, 'Appointments', [
       <label class="label" for="doctor">Doctor</label>
       <select class="select" id="doctor" name="doctor" data-autosubmit>
         <option value="">All</option>
-        <?php foreach ($doctors as $d): ?><option value="<?= (int) $d['id'] ?>" <?= $doctorId === (int) $d['id'] ? 'selected' : '' ?>><?= e($d['name']) ?></option><?php endforeach; ?>
+        <?php foreach ($doctors as $d): ?><option value="<?= (int) $d['doctor_id'] ?>" <?= $doctorId === (int) $d['doctor_id'] ? 'selected' : '' ?>><?= e($d['name']) ?></option><?php endforeach; ?>
       </select>
     </div>
     <div class="field"><label class="label" for="from">From</label><input class="input" type="date" id="from" name="from" value="<?= e($from) ?>"></div>

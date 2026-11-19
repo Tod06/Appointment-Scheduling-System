@@ -13,9 +13,9 @@ $newPatients = (int) q_val('SELECT COUNT(*) FROM patients WHERE created_at >= (N
 $weekStart = week_start($today);
 $weekEnd = date('Y-m-d', strtotime("$weekStart +6 days"));
 $clinicLoad = q_all(
-    "SELECT d.clinic AS name, COUNT(a.id) AS n
+    "SELECT d.clinic AS name, COUNT(a.appointment_id) AS n
      FROM doctors d
-     LEFT JOIN appointments a ON a.doctor_id = d.id AND a.appointment_date BETWEEN ? AND ? AND a.status <> 'Cancelled'
+     LEFT JOIN appointments a ON a.doctor_id = d.doctor_id AND a.appointment_date BETWEEN ? AND ? AND a.status <> 'Cancelled'
      WHERE d.is_active = 1 GROUP BY d.clinic ORDER BY n DESC, d.clinic",
     [$weekStart, $weekEnd]
 );
@@ -26,10 +26,10 @@ $todayList = q_all(
     [$today]
 );
 $activity = q_all(
-    "SELECT h.*, p.name AS patient_name, a.id AS appointment_id
+    "SELECT h.*, p.name AS patient_name, a.appointment_id AS appointment_id
      FROM appointment_history h
-     JOIN appointments a ON a.id = h.appointment_id
-     JOIN patients p ON p.id = a.patient_id
+     JOIN appointments a ON a.appointment_id = h.appointment_id
+     JOIN patients p ON p.patient_id = a.patient_id
      ORDER BY h.created_at DESC, h.id DESC LIMIT 8"
 );
 
@@ -85,7 +85,7 @@ app_start($user, 'Overview', [
         <ul class="list">
           <?php foreach ($todayList as $a): ?>
             <li>
-              <a class="list-item" href="<?= e(url('appointment.php?id=' . $a['id'])) ?>">
+              <a class="list-item" href="<?= e(url('appointment.php?id=' . $a['appointment_id'])) ?>">
                 <span class="time-chip"><?= e(fmt_time($a['appointment_time'])) ?></span>
                 <div class="list-main">
                   <div class="list-title"><?= e($a['patient_name']) ?></div>

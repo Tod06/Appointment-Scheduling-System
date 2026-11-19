@@ -15,7 +15,7 @@ if ($doctorId) { $where[] = 'a.doctor_id = ?'; $params[] = $doctorId; }
 $appointments = q_all(APPOINTMENT_SELECT . ' WHERE ' . implode(' AND ', $where) . ' ORDER BY a.appointment_date, a.appointment_time', $params);
 
 $clinics = clinic_types(false);
-$doctors = q_all('SELECT id, name, clinic FROM doctors ORDER BY name');
+$doctors = q_all('SELECT doctor_id, name, clinic FROM doctors ORDER BY name');
 
 app_start($user, 'Calendar', [
     'active' => 'admin/calendar.php',
@@ -38,7 +38,7 @@ app_start($user, 'Calendar', [
         <option value="">All doctors</option>
         <?php foreach ($doctors as $d): ?>
           <?php if ($clinic !== '' && $d['clinic'] !== $clinic) continue; ?>
-          <option value="<?= (int) $d['id'] ?>" <?= $doctorId === (int) $d['id'] ? 'selected' : '' ?>><?= e($d['name']) ?></option>
+          <option value="<?= (int) $d['doctor_id'] ?>" <?= $doctorId === (int) $d['doctor_id'] ? 'selected' : '' ?>><?= e($d['name']) ?></option>
         <?php endforeach; ?>
       </select>
     </div>

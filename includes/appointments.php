@@ -42,7 +42,7 @@ function taken_times(int $doctorId, string $date, int $exceptAppointmentId = 0):
 {
     $rows = q_all(
         'SELECT appointment_time FROM appointments
-         WHERE doctor_id = ? AND appointment_date = ? AND id <> ?
+         WHERE doctor_id = ? AND appointment_date = ? AND appointment_id <> ?
            AND status IN (' . placeholders(ACTIVE_STATUSES) . ')',
         array_merge([$doctorId, $date, $exceptAppointmentId], ACTIVE_STATUSES)
     );
@@ -58,7 +58,7 @@ function slots_for(array $doctor, string $date, int $exceptAppointmentId = 0): a
     if (!doctor_works_on($doctor, $date)) {
         return [];
     }
-    $taken = array_flip(taken_times((int) $doctor['id'], $date, $exceptAppointmentId));
+    $taken = array_flip(taken_times((int) $doctor['doctor_id'], $date, $exceptAppointmentId));
     $cutoff = time() + 30 * 60;
     $slots = [];
     foreach (doctor_slot_times($doctor) as $time) {
@@ -87,12 +87,12 @@ const APPOINTMENT_SELECT = '
            p.name AS patient_name, p.email AS patient_email, p.phone AS patient_phone, p.matric_no,
            d.name AS doctor_name, d.specialty, d.slot_minutes, d.clinic AS clinic_name
     FROM appointments a
-    JOIN patients p ON p.id = a.patient_id
-    JOIN doctors d ON d.id = a.doctor_id';
+    JOIN patients p ON p.patient_id = a.patient_id
+    JOIN doctors d ON d.doctor_id = a.doctor_id';
 
 function find_appointment(int $id): ?array
 {
-    return q_one(APPOINTMENT_SELECT . ' WHERE a.id = ?', [$id]);
+    return q_one(APPOINTMENT_SELECT . ' WHERE a.appointment_id = ?', [$id]);
 }
 
 /** Whether $user may see this appointment at all. */
@@ -191,17 +191,17 @@ function change_status(array $user, array $appt, string $to, string $note = ''):
     $pdo = db();
     $pdo->beginTransaction();
     try {
-        $fresh = q_one('SELECT status FROM appointments WHERE id = ? FOR UPDATE', [$appt['id']]);
+        $fresh = q_one('SELECT status FROM appointments WHERE appointment_id = ? FOR UPDATE', [$appt['appointment_id']]);
         if (!$fresh || $fresh['status'] !== $appt['status']) {
             $pdo->rollBack();
             return 'This appointment was changed by someone else. Refresh to see the latest status.';
         }
         if ($user['role'] === 'patient') {
-            q('UPDATE appointments SET status = ? WHERE id = ?', [$to, $appt['id']]);
+            q('UPDATE appointments SET status = ? WHERE appointment_id = ?', [$to, $appt['appointment_id']]);
         } else {
-            q('UPDATE appointments SET status = ?, doctor_note = ? WHERE id = ?', [$to, $note !== '' ? $note : $appt['doctor_note'], $appt['id']]);
+            q('UPDATE appointments SET status = ?, doctor_note = ? WHERE appointment_id = ?', [$to, $note !== '' ? $note : $appt['doctor_note'], $appt['appointment_id']]);
         }
-        log_history((int) $appt['id'], $appt['status'], $to, $user['role'], (int) $user['id'], $note);
+        log_history((int) $appt['appointment_id'], $appt['status'], $to, $user['role'], (int) $user['id'], $note);
         $pdo->commit();
     } catch (Throwable $ex) {
         $pdo->rollBack();
@@ -209,7 +209,7 @@ function change_status(array $user, array $appt, string $to, string $note = ''):
     }
 
     $when = fmt_date($appt['appointment_date']) . ' at ' . fmt_time($appt['appointment_time']);
-    $link = 'appointment.php?id=' . $appt['id'];
+    $link = 'appointment.php?id=' . $appt['appointment_id'];
 
     if ($user['role'] === 'patient') {
         notify('doctor', (int) $appt['doctor_id'], 'Appointment cancelled by patient', $appt['patient_name'] . ' cancelled their appointment on ' . $when . '.', $link);
@@ -225,7 +225,7 @@ function change_status(array $user, array $appt, string $to, string $note = ''):
         }
         notify('patient', (int) $appt['patient_id'], $titles[$to] ?? 'Appointment updated', $body, $link);
         if ($user['role'] === 'admin') {
-            audit((int) $user['id'], 'appointment.status', 'appointment', (int) $appt['id'], $appt['status'] . ' to ' . $to);
+            audit((int) $user['id'], 'appointment.status', 'appointment', (int) $appt['appointment_id'], $appt['status'] . ' to ' . $to);
         }
     }
     return null;
@@ -234,7 +234,7 @@ function change_status(array $user, array $appt, string $to, string $note = ''):
 /**
  * Books a new appointment, or moves an existing one when $existing is given.
  * The doctor row is locked during the check so two patients cannot take the same slot.
- * Returns ['id' => int] on success or ['error' => string].
+ * Returns ['appointment_id' => int] on success or ['error' => string].
  */
 function book_appointment(array $patient, int $doctorId, string $date, string $time, string $reason, ?array $existing = null): array
 {
@@ -258,7 +258,7 @@ function book_appointment(array $patient, int $doctorId, string $date, string $t
     $pdo->beginTransaction();
     try {
         $doctor = q_one(
-            'SELECT * FROM doctors WHERE id = ? AND is_active = 1 FOR UPDATE',
+            'SELECT * FROM doctors WHERE doctor_id = ? AND is_active = 1 FOR UPDATE',
             [$doctorId]
         );
         if (!$doctor) {
@@ -274,11 +274,11 @@ function book_appointment(array $patient, int $doctorId, string $date, string $t
             return ['error' => 'That time has passed or starts too soon. Pick a later slot.'];
         }
 
-        $exceptId = $existing ? (int) $existing['id'] : 0;
+        $exceptId = $existing ? (int) $existing['appointment_id'] : 0;
         $status = placeholders(ACTIVE_STATUSES);
         $clash = (int) q_val(
             "SELECT COUNT(*) FROM appointments WHERE doctor_id = ? AND appointment_date = ? AND appointment_time = ?
-             AND id <> ? AND status IN ($status)",
+             AND appointment_id <> ? AND status IN ($status)",
             array_merge([$doctorId, $date, $time, $exceptId], ACTIVE_STATUSES)
         );
         if ($clash) {
@@ -287,7 +287,7 @@ function book_appointment(array $patient, int $doctorId, string $date, string $t
         }
         $ownClash = (int) q_val(
             "SELECT COUNT(*) FROM appointments WHERE patient_id = ? AND appointment_date = ? AND appointment_time = ?
-             AND id <> ? AND status IN ($status)",
+             AND appointment_id <> ? AND status IN ($status)",
             array_merge([$patient['id'], $date, $time, $exceptId], ACTIVE_STATUSES)
         );
         if ($ownClash) {
@@ -298,10 +298,10 @@ function book_appointment(array $patient, int $doctorId, string $date, string $t
         if ($existing) {
             q(
                 "UPDATE appointments SET doctor_id = ?, appointment_date = ?, appointment_time = ?, status = 'Rescheduled',
-                 reason = ?, reminder_sent = 0 WHERE id = ?",
-                [$doctorId, $date, $time, $reason !== '' ? $reason : $existing['reason'], $existing['id']]
+                 reason = ?, reminder_sent = 0 WHERE appointment_id = ?",
+                [$doctorId, $date, $time, $reason !== '' ? $reason : $existing['reason'], $existing['appointment_id']]
             );
-            $id = (int) $existing['id'];
+            $id = (int) $existing['appointment_id'];
             log_history($id, $existing['status'], 'Rescheduled', 'patient', (int) $patient['id'], '', [
                 'from_date' => $existing['appointment_date'], 'from_time' => $existing['appointment_time'],
                 'to_date' => $date, 'to_time' => $time,
@@ -329,7 +329,7 @@ function book_appointment(array $patient, int $doctorId, string $date, string $t
     } else {
         notify('doctor', $doctorId, 'New appointment request', $patient['name'] . ' requested ' . $when . '.', 'appointment.php?id=' . $id);
     }
-    return ['id' => $id];
+    return ['appointment_id' => $id];
 }
 
 /**
@@ -339,8 +339,8 @@ function book_appointment(array $patient, int $doctorId, string $date, string $t
 function send_due_reminders(int $patientId): void
 {
     $due = q_all(
-        "SELECT a.id, a.appointment_date, a.appointment_time, d.name AS doctor_name, d.clinic AS clinic_name
-         FROM appointments a JOIN doctors d ON d.id = a.doctor_id
+        "SELECT a.appointment_id, a.appointment_date, a.appointment_time, d.name AS doctor_name, d.clinic AS clinic_name
+         FROM appointments a JOIN doctors d ON d.doctor_id = a.doctor_id
          WHERE a.patient_id = ? AND a.status = 'Approved' AND a.reminder_sent = 0
            AND TIMESTAMP(a.appointment_date, a.appointment_time) BETWEEN NOW() AND (NOW() + INTERVAL 24 HOUR)",
         [$patientId]
@@ -351,9 +351,9 @@ function send_due_reminders(int $patientId): void
             $patientId,
             'Reminder: appointment ' . strtolower(relative_day($appt['appointment_date'])),
             $appt['doctor_name'] . ', ' . $appt['clinic_name'] . ', ' . fmt_time($appt['appointment_time']) . '. Please arrive 10 minutes early with your ID card.',
-            'appointment.php?id=' . $appt['id']
+            'appointment.php?id=' . $appt['appointment_id']
         );
-        q('UPDATE appointments SET reminder_sent = 1 WHERE id = ?', [$appt['id']]);
+        q('UPDATE appointments SET reminder_sent = 1 WHERE appointment_id = ?', [$appt['appointment_id']]);
     }
 }
 
@@ -361,7 +361,7 @@ function send_due_reminders(int $patientId): void
 function status_counts(string $where = '1=1', array $params = []): array
 {
     $counts = array_fill_keys(STATUSES, 0);
-    foreach (q_all("SELECT a.status, COUNT(*) AS n FROM appointments a JOIN doctors d ON d.id = a.doctor_id WHERE $where GROUP BY a.status", $params) as $row) {
+    foreach (q_all("SELECT a.status, COUNT(*) AS n FROM appointments a JOIN doctors d ON d.doctor_id = a.doctor_id WHERE $where GROUP BY a.status", $params) as $row) {
         $counts[$row['status']] = (int) $row['n'];
     }
     return $counts;

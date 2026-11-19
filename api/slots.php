@@ -34,13 +34,13 @@ if ($date < $first || $date > $last) {
 
 // Patients may only exclude their own appointment (when rescheduling).
 if ($exceptId && $user['role'] === 'patient') {
-    $own = q_val('SELECT COUNT(*) FROM appointments WHERE id = ? AND patient_id = ?', [$exceptId, $user['id']]);
+    $own = q_val('SELECT COUNT(*) FROM appointments WHERE appointment_id = ? AND patient_id = ?', [$exceptId, $user['id']]);
     if (!$own) {
         $exceptId = 0;
     }
 }
 
-$doctor = q_one('SELECT * FROM doctors WHERE id = ? AND is_active = 1', [$doctorId]);
+$doctor = q_one('SELECT * FROM doctors WHERE doctor_id = ? AND is_active = 1', [$doctorId]);
 if (!$doctor) {
     respond(404, ['error' => 'That doctor is not taking appointments.']);
 }

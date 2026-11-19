@@ -6,7 +6,7 @@ $user = require_role('admin');
 $total = (int) q_val('SELECT COUNT(*) FROM audit_log');
 $p = paginate($total, 30);
 $rows = q_all(
-    "SELECT l.*, ad.name AS admin_name FROM audit_log l LEFT JOIN admins ad ON ad.id = l.admin_id
+    "SELECT l.*, ad.name AS admin_name FROM audit_log l LEFT JOIN admins ad ON ad.admin_id = l.admin_id
      ORDER BY l.created_at DESC, l.id DESC LIMIT {$p['per_page']} OFFSET {$p['offset']}"
 );
 

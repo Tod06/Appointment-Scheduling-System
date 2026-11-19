@@ -32,7 +32,7 @@ function appointment_list_item(array $a, string $perspective): string
     $who = $perspective === 'patient'
         ? e($a['doctor_name']) . ' <span class="muted">· ' . e($a['clinic_name']) . '</span>'
         : e($a['patient_name']) . ' <span class="muted">· ' . e($perspective === 'admin' ? $a['doctor_name'] : ($a['reason'] ?: 'No reason given')) . '</span>';
-    return '<a class="list-item" href="' . e(url('appointment.php?id=' . $a['id'])) . '">'
+    return '<a class="list-item" href="' . e(url('appointment.php?id=' . $a['appointment_id'])) . '">'
         . date_chip($a['appointment_date'])
         . '<div class="list-main"><div class="list-title">' . $who . '</div>'
         . '<div class="list-sub">' . e(relative_day($a['appointment_date'])) . ', ' . e(fmt_time($a['appointment_time'])) . '</div></div>'
@@ -79,7 +79,7 @@ function appointments_table(array $rows, string $perspective): string
         <?php endif; ?>
         <td class="hide-sm" style="max-width:260px"><div class="cell-sub" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"><?= e($a['reason'] ?: '—') ?></div></td>
         <td><?= status_badge($a['status']) ?></td>
-        <td class="actions"><a class="btn btn-secondary btn-sm" href="<?= e(url('appointment.php?id=' . $a['id'])) ?>">View</a></td>
+        <td class="actions"><a class="btn btn-secondary btn-sm" href="<?= e(url('appointment.php?id=' . $a['appointment_id'])) ?>">View</a></td>
       </tr>
     <?php endforeach; ?>
     </tbody>
@@ -126,7 +126,7 @@ function week_calendar(array $appointments, string $weekStart, string $perspecti
         } else {
             foreach ($byDay[$date] as $a) {
                 $sub = $perspective === 'doctor' ? ($a['reason'] ?: $a['clinic_name']) : $a['doctor_name'];
-                echo '<a class="week-event ' . e(strtolower($a['status'])) . '" href="' . e(url('appointment.php?id=' . $a['id'])) . '" title="' . e($a['status']) . '">'
+                echo '<a class="week-event ' . e(strtolower($a['status'])) . '" href="' . e(url('appointment.php?id=' . $a['appointment_id'])) . '" title="' . e($a['status']) . '">'
                     . '<div class="t">' . e(fmt_time($a['appointment_time'])) . '</div>'
                     . '<div class="n">' . e($a['patient_name']) . '</div>'
                     . '<div class="s">' . e($sub) . '</div></a>';

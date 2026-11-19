@@ -21,11 +21,11 @@ if (is_post()) {
         }
         if (!$errors) {
             if ($user['role'] === 'patient') {
-                q('UPDATE patients SET name = ?, phone = ? WHERE id = ?', [$name, $phone, $user['id']]);
+                q('UPDATE patients SET name = ?, phone = ? WHERE patient_id = ?', [$name, $phone, $user['id']]);
             } elseif ($user['role'] === 'doctor') {
-                q('UPDATE doctors SET phone = ? WHERE id = ?', [$phone, $user['id']]);
+                q('UPDATE doctors SET phone = ? WHERE doctor_id = ?', [$phone, $user['id']]);
             } else {
-                q('UPDATE admins SET name = ? WHERE id = ?', [$name, $user['id']]);
+                q('UPDATE admins SET name = ? WHERE admin_id = ?', [$name, $user['id']]);
             }
             flash('success', 'Your details have been saved.');
             redirect('account.php');
@@ -36,7 +36,7 @@ if (is_post()) {
         $current = (string) ($_POST['current_password'] ?? '');
         $new = (string) ($_POST['new_password'] ?? '');
         $confirm = (string) ($_POST['confirm_password'] ?? '');
-        $hash = (string) q_val("SELECT password_hash FROM {$table} WHERE id = ?", [$user['id']]);
+        $hash = (string) q_val("SELECT password_hash FROM {$table} WHERE " . user_pk($user['role']) . ' = ?', [$user['id']]);
         if (!password_verify($current, $hash)) {
             $errors[] = 'Your current password is incorrect.';
         } elseif ($problem = password_problem($new)) {
@@ -45,7 +45,7 @@ if (is_post()) {
             $errors[] = 'The new passwords do not match.';
         }
         if (!$errors) {
-            q("UPDATE {$table} SET password_hash = ? WHERE id = ?", [password_hash($new, PASSWORD_DEFAULT), $user['id']]);
+            q("UPDATE {$table} SET password_hash = ? WHERE " . user_pk($user['role']) . ' = ?', [password_hash($new, PASSWORD_DEFAULT), $user['id']]);
             session_regenerate_id(true);
             if ($user['role'] === 'admin') {
                 audit((int) $user['id'], 'account.password', 'admin', (int) $user['id'], 'Changed own password');

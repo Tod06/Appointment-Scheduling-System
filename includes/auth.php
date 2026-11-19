@@ -42,6 +42,23 @@ function user_table(string $role): string
     };
 }
 
+/** Primary key column of each user table, as named in the report's ER diagram. */
+function user_pk(string $role): string
+{
+    return match ($role) {
+        'patient' => 'patient_id',
+        'doctor' => 'doctor_id',
+        'admin' => 'admin_id',
+    };
+}
+
+/** Adds a generic 'id' key so code shared by all roles can refer to the user the same way. */
+function with_user_id(string $role, array $row): array
+{
+    $row['id'] = (int) $row[user_pk($role)];
+    return $row;
+}
+
 function role_label(string $role): string
 {
     return match ($role) {
@@ -64,12 +81,13 @@ function current_user(): ?array
     if (!$id || !in_array($role, ROLES, true)) {
         return $cache = null;
     }
-    $row = q_one('SELECT * FROM ' . user_table($role) . ' WHERE id = ?', [$id]);
+    $row = q_one('SELECT * FROM ' . user_table($role) . ' WHERE ' . user_pk($role) . ' = ?', [$id]);
     if (!$row || !(int) $row['is_active']) {
         unset($_SESSION['uid'], $_SESSION['role']);
         return $cache = null;
     }
     unset($row['password_hash']);
+    $row = with_user_id($role, $row);
     $row['role'] = $role;
     return $cache = $row;
 }
@@ -174,7 +192,7 @@ function attempt_login(string $role, string $identifier, string $password): ?arr
         return null;
     }
     if (password_needs_rehash($hash, PASSWORD_DEFAULT)) {
-        q("UPDATE {$table} SET password_hash = ? WHERE id = ?", [password_hash($password, PASSWORD_DEFAULT), $row['id']]);
+        q("UPDATE {$table} SET password_hash = ? WHERE " . user_pk($role) . ' = ?', [password_hash($password, PASSWORD_DEFAULT), $row[user_pk($role)]]);
     }
-    return $row;
+    return with_user_id($role, $row);
 }

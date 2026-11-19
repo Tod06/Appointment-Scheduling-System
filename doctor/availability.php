@@ -17,7 +17,7 @@ if (is_post()) {
     $errors = $result['errors'];
     if (!$errors) {
         q(
-            'UPDATE doctors SET work_days = ?, start_time = ?, end_time = ?, slot_minutes = ? WHERE id = ?',
+            'UPDATE doctors SET work_days = ?, start_time = ?, end_time = ?, slot_minutes = ? WHERE doctor_id = ?',
             [implode(',', $form['days']), $form['start'] . ':00', $form['end'] . ':00', $form['slot'], $user['id']]
         );
         flash('success', 'Your availability has been updated. Existing appointments are unchanged.');

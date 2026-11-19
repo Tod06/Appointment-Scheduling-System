@@ -11,7 +11,7 @@
 SET NAMES utf8mb4;
 
 CREATE TABLE IF NOT EXISTS patients (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  patient_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   matric_no VARCHAR(30) NULL,
   name VARCHAR(120) NOT NULL,
   email VARCHAR(190) NOT NULL,
@@ -19,13 +19,13 @@ CREATE TABLE IF NOT EXISTS patients (
   password_hash VARCHAR(255) NOT NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (patient_id),
   UNIQUE KEY uq_patient_email (email),
   UNIQUE KEY uq_patient_matric (matric_no)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS doctors (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  doctor_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(120) NOT NULL,
   clinic VARCHAR(120) NOT NULL,
   specialty VARCHAR(120) NOT NULL DEFAULT '',
@@ -38,24 +38,24 @@ CREATE TABLE IF NOT EXISTS doctors (
   slot_minutes SMALLINT UNSIGNED NOT NULL DEFAULT 30,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (doctor_id),
   UNIQUE KEY uq_doctor_email (email),
   KEY idx_doctor_clinic (clinic)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS admins (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  admin_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   name VARCHAR(120) NOT NULL,
   email VARCHAR(190) NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   is_active TINYINT(1) NOT NULL DEFAULT 1,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (admin_id),
   UNIQUE KEY uq_admin_email (email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS appointments (
-  id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+  appointment_id INT UNSIGNED NOT NULL AUTO_INCREMENT,
   patient_id INT UNSIGNED NOT NULL,
   doctor_id INT UNSIGNED NOT NULL,
   appointment_date DATE NOT NULL,
@@ -66,12 +66,12 @@ CREATE TABLE IF NOT EXISTS appointments (
   reminder_sent TINYINT(1) NOT NULL DEFAULT 0,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (id),
+  PRIMARY KEY (appointment_id),
   KEY idx_appt_doctor_slot (doctor_id, appointment_date, appointment_time),
   KEY idx_appt_patient (patient_id, appointment_date),
   KEY idx_appt_status_date (status, appointment_date),
-  CONSTRAINT fk_appt_patient FOREIGN KEY (patient_id) REFERENCES patients (id) ON DELETE CASCADE,
-  CONSTRAINT fk_appt_doctor FOREIGN KEY (doctor_id) REFERENCES doctors (id)
+  CONSTRAINT fk_appt_patient FOREIGN KEY (patient_id) REFERENCES patients (patient_id) ON DELETE CASCADE,
+  CONSTRAINT fk_appt_doctor FOREIGN KEY (doctor_id) REFERENCES doctors (doctor_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS appointment_history (
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS appointment_history (
   PRIMARY KEY (id),
   KEY idx_history_appt (appointment_id),
   KEY idx_history_created (created_at),
-  CONSTRAINT fk_history_appt FOREIGN KEY (appointment_id) REFERENCES appointments (id) ON DELETE CASCADE
+  CONSTRAINT fk_history_appt FOREIGN KEY (appointment_id) REFERENCES appointments (appointment_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS notifications (

@@ -12,7 +12,7 @@ if ($rid = to_int($_GET['reschedule'] ?? $_POST['reschedule'] ?? '')) {
     }
     if (!can_patient_change($existing)) {
         flash('error', 'This appointment can no longer be rescheduled online.');
-        redirect('appointment.php?id=' . $existing['id']);
+        redirect('appointment.php?id=' . $existing['appointment_id']);
     }
 }
 
@@ -38,11 +38,11 @@ if (is_post()) {
         $errors[] = 'Choose a doctor, a date and a time.';
     } else {
         $result = book_appointment($user, $selected['doctor'], $selected['date'], $selected['time'], $selected['reason'], $existing);
-        if (isset($result['id'])) {
+        if (isset($result['appointment_id'])) {
             flash('success', $existing
                 ? 'Your new time has been sent to the doctor for confirmation.'
                 : 'Your request has been sent. You will be notified when the doctor confirms it.');
-            redirect('appointment.php?id=' . $result['id']);
+            redirect('appointment.php?id=' . $result['appointment_id']);
         }
         $errors[] = $result['error'];
         $selected['time'] = '';
@@ -52,7 +52,7 @@ if (is_post()) {
 // Clinic types come from the clinic field of active doctors (Table 3.2).
 $clinics = q_all('SELECT clinic AS name, COUNT(*) AS doctors FROM doctors WHERE is_active = 1 GROUP BY clinic ORDER BY clinic');
 $doctors = array_map(fn ($d) => [
-    'id' => (int) $d['id'],
+    'id' => (int) $d['doctor_id'],
     'clinic' => $d['clinic'],
     'name' => $d['name'],
     'specialty' => $d['specialty'],
@@ -73,7 +73,7 @@ $bookingData = [
     'doctors' => $doctors,
     'selected' => $selected,
     'slotsUrl' => url('api/slots.php'),
-    'except' => $existing ? (int) $existing['id'] : 0,
+    'except' => $existing ? (int) $existing['appointment_id'] : 0,
 ];
 
 $title = $existing ? 'Reschedule appointment' : 'Book appointment';
@@ -82,7 +82,7 @@ app_start($user, $title, [
     'subtitle' => $existing
         ? 'Currently ' . fmt_date($existing['appointment_date']) . ' at ' . fmt_time($existing['appointment_time']) . ' with ' . $existing['doctor_name'] . '. Pick a new time below.'
         : 'Choose the clinic type, a doctor and a free time. The doctor will confirm your request.',
-    'back' => $existing ? [url('appointment.php?id=' . $existing['id']), 'Back to appointment'] : null,
+    'back' => $existing ? [url('appointment.php?id=' . $existing['appointment_id']), 'Back to appointment'] : null,
     'errors' => $errors,
 ]);
 ?>
@@ -93,7 +93,7 @@ app_start($user, $title, [
 <?php else: ?>
 <form method="post" class="grid grid-main-aside" data-booking novalidate>
   <?= csrf_field() ?>
-  <?php if ($existing): ?><input type="hidden" name="reschedule" value="<?= (int) $existing['id'] ?>"><?php endif; ?>
+  <?php if ($existing): ?><input type="hidden" name="reschedule" value="<?= (int) $existing['appointment_id'] ?>"><?php endif; ?>
   <script type="application/json" id="booking-data"><?= json_encode($bookingData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
 
   <div class="steps">

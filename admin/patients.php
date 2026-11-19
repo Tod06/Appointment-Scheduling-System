@@ -7,7 +7,7 @@ $errors = [];
 
 /* ---------- Single patient: edit, activate, reset password ---------- */
 if ($id) {
-    $patient = q_one('SELECT * FROM patients WHERE id = ?', [$id]);
+    $patient = q_one('SELECT * FROM patients WHERE patient_id = ?', [$id]);
     if (!$patient) {
         render_error_page(404, 'Patient not found', 'This patient record does not exist.');
     }
@@ -25,10 +25,10 @@ if ($id) {
             if (!valid_email($email)) $errors[] = 'Enter a valid email address.';
             if (!valid_phone($phone)) $errors[] = 'Enter a valid phone number.';
             if ($matric !== '' && !valid_matric($matric)) $errors[] = 'Matric numbers can contain letters, numbers, / and -.';
-            if (!$errors && q_val('SELECT COUNT(*) FROM patients WHERE email = ? AND id <> ?', [$email, $id])) $errors[] = 'Another patient already uses this email.';
-            if (!$errors && $matric !== '' && q_val('SELECT COUNT(*) FROM patients WHERE matric_no = ? AND id <> ?', [$matric, $id])) $errors[] = 'Another patient already uses this matric number.';
+            if (!$errors && q_val('SELECT COUNT(*) FROM patients WHERE email = ? AND patient_id <> ?', [$email, $id])) $errors[] = 'Another patient already uses this email.';
+            if (!$errors && $matric !== '' && q_val('SELECT COUNT(*) FROM patients WHERE matric_no = ? AND patient_id <> ?', [$matric, $id])) $errors[] = 'Another patient already uses this matric number.';
             if (!$errors) {
-                q('UPDATE patients SET name = ?, email = ?, phone = ?, matric_no = ? WHERE id = ?', [$name, $email, $phone, $matric !== '' ? $matric : null, $id]);
+                q('UPDATE patients SET name = ?, email = ?, phone = ?, matric_no = ? WHERE patient_id = ?', [$name, $email, $phone, $matric !== '' ? $matric : null, $id]);
                 audit((int) $user['id'], 'patient.update', 'patient', $id, 'Updated details for ' . $name);
                 flash('success', 'Patient details saved.');
                 redirect('admin/patients.php?id=' . $id);
@@ -38,7 +38,7 @@ if ($id) {
 
         if ($action === 'toggle') {
             $newState = (int) !$patient['is_active'];
-            q('UPDATE patients SET is_active = ? WHERE id = ?', [$newState, $id]);
+            q('UPDATE patients SET is_active = ? WHERE patient_id = ?', [$newState, $id]);
             audit((int) $user['id'], $newState ? 'patient.activate' : 'patient.deactivate', 'patient', $id, $patient['name']);
             flash('success', $newState ? 'Account reactivated. The patient can sign in again.' : 'Account deactivated. The patient can no longer sign in.');
             redirect('admin/patients.php?id=' . $id);
@@ -49,7 +49,7 @@ if ($id) {
             if ($problem = password_problem($new)) {
                 $errors[] = 'Password: ' . $problem;
             } else {
-                q('UPDATE patients SET password_hash = ? WHERE id = ?', [password_hash($new, PASSWORD_DEFAULT), $id]);
+                q('UPDATE patients SET password_hash = ? WHERE patient_id = ?', [password_hash($new, PASSWORD_DEFAULT), $id]);
                 audit((int) $user['id'], 'patient.password_reset', 'patient', $id, $patient['name']);
                 flash('success', 'Password reset. Share it with the patient in person.');
                 redirect('admin/patients.php?id=' . $id);
@@ -140,9 +140,9 @@ $whereSql = implode(' AND ', $where);
 $total = (int) q_val("SELECT COUNT(*) FROM patients p WHERE $whereSql", $params);
 $p = paginate($total, 25);
 $rows = q_all(
-    "SELECT p.*, COUNT(a.id) AS total_appts, MAX(a.appointment_date) AS last_visit
-     FROM patients p LEFT JOIN appointments a ON a.patient_id = p.id
-     WHERE $whereSql GROUP BY p.id ORDER BY p.created_at DESC LIMIT {$p['per_page']} OFFSET {$p['offset']}",
+    "SELECT p.*, COUNT(a.appointment_id) AS total_appts, MAX(a.appointment_date) AS last_visit
+     FROM patients p LEFT JOIN appointments a ON a.patient_id = p.patient_id
+     WHERE $whereSql GROUP BY p.patient_id ORDER BY p.created_at DESC LIMIT {$p['per_page']} OFFSET {$p['offset']}",
     $params
 );
 
@@ -184,7 +184,7 @@ app_start($user, 'Patients', [
               <td class="hide-sm num"><?= e($r['phone']) ?></td>
               <td class="num"><?= (int) $r['total_appts'] ?><?php if ($r['last_visit']): ?> <span class="cell-sub">· last <?= e(fmt_date_short($r['last_visit'])) ?></span><?php endif; ?></td>
               <td><?= $r['is_active'] ? '<span class="badge badge-approved"><span class="badge-dot"></span>Active</span>' : '<span class="badge badge-cancelled"><span class="badge-dot"></span>Deactivated</span>' ?></td>
-              <td class="actions"><a class="btn btn-secondary btn-sm" href="<?= e(url('admin/patients.php?id=' . $r['id'])) ?>">Manage</a></td>
+              <td class="actions"><a class="btn btn-secondary btn-sm" href="<?= e(url('admin/patients.php?id=' . $r['patient_id'])) ?>">Manage</a></td>
             </tr>
           <?php endforeach; ?>
         </tbody>
