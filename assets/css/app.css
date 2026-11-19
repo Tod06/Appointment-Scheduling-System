@@ -420,6 +420,31 @@ a.list-item:hover { background: var(--surface-2); }
 .brand-words .brand-name { font-size: 15px; font-weight: 600; color: var(--ink); letter-spacing: -0.015em; }
 .brand-words .brand-sub { font-size: 12px; color: var(--ink-3); }
 .topbar-crest { display: none; }
+
+/* Account menu in the app top bar (phones and tablets) */
+.user-menu { position: relative; display: none; }
+.user-menu-toggle {
+  position: relative; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; margin-left: 2px;
+  border: 0; border-radius: 50%; background: transparent; cursor: pointer;
+}
+.user-menu-toggle:hover .avatar, .user-menu-toggle[aria-expanded="true"] .avatar { box-shadow: 0 0 0 2px var(--accent); }
+.user-menu-panel {
+  position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; width: 248px; padding: 6px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+}
+.user-menu-panel[hidden] { display: none; }
+.user-menu-head { display: flex; align-items: center; gap: 10px; padding: 10px 10px 12px; margin-bottom: 4px; border-bottom: 1px solid var(--line); }
+.user-menu-head .main { min-width: 0; }
+.user-menu-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; height: 44px; padding: 0 10px;
+  border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--ink); font-size: 14px; font-weight: 500;
+  text-align: left; cursor: pointer;
+}
+.user-menu-item .icon { color: var(--ink-3); }
+.user-menu-item:hover { background: var(--surface-3); }
+.user-menu-item .nav-count { margin-left: auto; }
+.user-menu-item.is-danger { color: var(--red); }
+.user-menu-item.is-danger .icon { color: var(--red); }
 .brand-name { font-weight: 600; font-size: 14px; letter-spacing: -0.015em; line-height: 1.15; }
 .brand-sub { font-size: 11.5px; color: var(--ink-3); line-height: 1.2; }
 
@@ -883,6 +908,9 @@ a.list-item:hover { background: var(--surface-2); }
   .app.nav-open .scrim { opacity: 1; pointer-events: auto; }
   .menu-toggle { display: inline-flex; }
   .topbar-crest { display: block; flex: none; }
+  .user-menu { display: block; }
+  .topbar .bell { display: none; }
+  .sidebar { height: 100vh; height: 100dvh; }
   .topbar-title > span, .topbar-title > .icon { display: none; }
   .auth-main > .brand { align-self: center; }
   .footer-brand { display: flex; flex-direction: column; align-items: center; text-align: center; }

@@ -104,6 +104,35 @@
     });
   }
 
+  /* ---------- Account menu in the top bar ---------- */
+
+  var userMenu = $('[data-user-menu]');
+  if (userMenu) {
+    var userToggle = $('[data-user-menu-toggle]', userMenu);
+    var userPanel = $('#user-menu-panel');
+    var setUserMenu = function (open) {
+      userPanel.hidden = !open;
+      userToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    };
+    userToggle.addEventListener('click', function () {
+      var open = userPanel.hidden;
+      setUserMenu(open);
+      if (open) {
+        var first = $('.user-menu-item', userPanel);
+        if (first) first.focus();
+      }
+    });
+    document.addEventListener('click', function (e) {
+      if (!userPanel.hidden && !e.target.closest('[data-user-menu]')) setUserMenu(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !userPanel.hidden) {
+        setUserMenu(false);
+        userToggle.focus();
+      }
+    });
+  }
+
   /* ---------- Shared click behaviour ---------- */
 
   document.addEventListener('click', function (e) {

@@ -197,6 +197,29 @@ function app_start(array $user, string $title, array $opts = []): void
             <?= icon('bell', 18) ?><?php if ($unread): ?><span class="bell-dot"></span><?php endif; ?>
           </a>
         <?php endif; ?>
+        <div class="user-menu" data-user-menu>
+          <button class="user-menu-toggle" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="user-menu-panel" aria-label="Account menu for <?= e($user['name']) ?>" data-user-menu-toggle>
+            <span class="avatar avatar-sm"><?= e(initials($user['name'])) ?></span>
+            <?php if ($unread && $user['role'] !== 'admin'): ?><span class="bell-dot" aria-hidden="true"></span><?php endif; ?>
+          </button>
+          <div class="user-menu-panel" id="user-menu-panel" hidden>
+            <div class="user-menu-head">
+              <span class="avatar"><?= e(initials($user['name'])) ?></span>
+              <div class="main">
+                <div class="user-card-name"><?= e($user['name']) ?></div>
+                <div class="user-card-role"><?= e(role_label($user['role'])) ?></div>
+              </div>
+            </div>
+            <a class="user-menu-item" href="<?= e(url('account.php')) ?>"><?= icon('user', 16) ?> Account</a>
+            <?php if ($user['role'] !== 'admin'): ?>
+              <a class="user-menu-item" href="<?= e(url('notifications.php')) ?>"><?= icon('bell', 16) ?> Notifications<?php if ($unread): ?><span class="nav-count"><?= $unread > 99 ? '99+' : $unread ?></span><?php endif; ?></a>
+            <?php endif; ?>
+            <form method="post" action="<?= e(url('logout.php')) ?>">
+              <?= csrf_field() ?>
+              <button class="user-menu-item is-danger" type="submit"><?= icon('log-out', 16) ?> Sign out</button>
+            </form>
+          </div>
+        </div>
       </div>
     </header>
 
