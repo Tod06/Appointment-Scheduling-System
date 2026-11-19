@@ -7,6 +7,67 @@ Patients register, choose a clinic, doctor, date and free time, and follow their
 Doctors review requests and manage their schedule. Administrators manage patients, doctors and appointments,
 and export reports.
 
+![Home page](docs/screenshots/01-home.jpg)
+
+## Demo video
+
+A one-minute walkthrough: the public pages, a patient booking an appointment, the doctor approving it,
+and the administrator's dashboard, reports and dark mode.
+
+[![Watch the walkthrough video](docs/screenshots/06-booking.jpg)](docs/demo.webm)
+
+**[Watch the walkthrough video (docs/demo.webm, 63 seconds)](docs/demo.webm)**
+
+## Screenshots
+
+The data shown is sample data for demonstration.
+
+### Public pages
+
+| How it works | Doctors |
+| --- | --- |
+| ![How it works](docs/screenshots/02-how-it-works.jpg) | ![Doctors and consultation hours](docs/screenshots/03-doctors.jpg) |
+
+| Sign in | Home in dark mode |
+| --- | --- |
+| ![Sign in](docs/screenshots/04-sign-in.jpg) | ![Home page in dark mode](docs/screenshots/14-home-dark.jpg) |
+
+### Patient
+
+| Dashboard | Booking an appointment |
+| --- | --- |
+| ![Patient dashboard](docs/screenshots/05-patient-dashboard.jpg) | ![Booking an appointment](docs/screenshots/06-booking.jpg) |
+
+| Appointment details and history |
+| --- |
+| ![Appointment details](docs/screenshots/07-appointment-details.jpg) |
+
+### Doctor
+
+| Today | Week calendar |
+| --- | --- |
+| ![Doctor's day](docs/screenshots/08-doctor-today.jpg) | ![Doctor's week calendar](docs/screenshots/09-doctor-week-calendar.jpg) |
+
+### Administrator
+
+| Overview | Calendar |
+| --- | --- |
+| ![Administrator overview](docs/screenshots/10-admin-dashboard.jpg) | ![Administrator calendar](docs/screenshots/11-admin-calendar.jpg) |
+
+| Reports | Doctors |
+| --- | --- |
+| ![Reports](docs/screenshots/12-admin-reports.jpg) | ![Manage doctors](docs/screenshots/13-admin-doctors.jpg) |
+
+| Overview in dark mode |
+| --- |
+| ![Administrator overview in dark mode](docs/screenshots/15-admin-dashboard-dark.jpg) |
+
+### Phones
+
+| Home | Menu | Patient dashboard | Booking | Doctor's day |
+| --- | --- | --- | --- | --- |
+| ![Home on a phone](docs/screenshots/m1-home.jpg) | ![Menu on a phone](docs/screenshots/m2-menu.jpg) | ![Patient dashboard on a phone](docs/screenshots/m3-patient-dashboard.jpg) | ![Booking on a phone](docs/screenshots/m4-booking.jpg) | ![Doctor's day on a phone](docs/screenshots/m5-doctor-today.jpg) |
+
 ## Features
 
 | Requirement | Where it lives |
@@ -52,7 +113,8 @@ The clinic types a patient can choose come from the clinic field of the doctors 
 ├── includes/              Shared PHP: database, sign-in, rules, layout
 ├── assets/                CSS and JavaScript
 ├── database/schema.sql    Database tables
-└── install.php            One-time setup
+├── install.php            One-time setup
+└── docs/                  Screenshots and the demo video (not needed on the server)
 ```
 
 ## Run locally with XAMPP
@@ -72,7 +134,7 @@ The clinic types a patient can choose come from the clinic field of the doctors 
    Note the **MySQL host**, **database name**, **username** and **password** shown there.
 2. Copy `config.sample.php` to `config.php` on your computer and fill in those four values.
    Set `'base_url' => ''` because the site runs from the root of `htdocs`.
-3. Upload the project files into the `htdocs` folder using the InfinityFree file manager or an FTP client
+3. Upload the project files (everything except `docs/`) into the `htdocs` folder using the InfinityFree file manager or an FTP client
    such as FileZilla. Upload `config.php` too. It is not on GitHub, by design.
 4. Visit `https://your-site.infinityfreeapp.com/install.php`, create the administrator account, then add the doctors.
    If setup cannot create the tables, import `database/schema.sql` in phpMyAdmin first, then run setup again.
@@ -96,7 +158,7 @@ This is an academic project. Using it with real patient data would need an insti
 
 ## Images
 
-- University of Ibadan logo (`assets/img/ui-logo.png`), and the crest cut from it (`ui-crest.png`, `favicon.png`).
+- University of Ibadan crest (`assets/img/ui-crest.png`), also used for the favicons (`favicon.png`, `favicon-32.png`) and the home-screen icon (`apple-touch-icon.png`).
 - Photographs from [Unsplash](https://unsplash.com), free to use under the [Unsplash License](https://unsplash.com/license):
   - `hero-doctor.jpg` by Eben Kassaye
   - `consultation.jpg` by Francisco Venâncio

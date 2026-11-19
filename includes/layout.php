@@ -273,7 +273,7 @@ function site_footer(): void
 <footer class="site-footer">
   <div class="container footer-grid">
     <div class="footer-brand">
-      <?= brand_logo(38) ?>
+      <?= brand_logo(44) ?>
       <p><?= e(config('org_name')) ?></p>
     </div>
     <nav class="footer-links" aria-label="Footer">
